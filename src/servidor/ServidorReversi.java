@@ -12,6 +12,7 @@ public class ServidorReversi {
     private static Tabuleiro tabuleiro = new Tabuleiro();
     private static ArrayList<PrintWriter> jogadores = new ArrayList<>();
     private static ArrayList<BufferedReader> entradas = new ArrayList<>();
+    private static ArrayList<String> nomes = new ArrayList<>();
     private static char[] cores = {'B', 'W'};
     private static int jogadorAtual = 0;
 
@@ -30,7 +31,19 @@ public class ServidorReversi {
                 BufferedReader in = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
                 jogadores.add(out);
                 entradas.add(in);
+
+                // Recebe o nome do jogador
+                String nome = in.readLine();
+                if (nome == null || nome.isEmpty()) nome = "Jogador" + jogadores.size();
+                nomes.add(nome);
+
                 out.println(cores[jogadores.size() - 1]); // Envia cor ao jogador
+
+                // Se já há dois jogadores, envia o nome do adversário para cada um
+                if (jogadores.size() == 2) {
+                    jogadores.get(0).println(nomes.get(1));
+                    jogadores.get(1).println(nomes.get(0));
+                }
             }
 
             enviarMensagemATodos("COMEÇAR");
