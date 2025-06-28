@@ -408,10 +408,11 @@ public class InterfaceJogo {
         });
 
         confirmarBtn.setOnAction(e -> {
+            // Só permite confirmar se for o turno do jogador
             if (!meuTurno) return;
             if (jogadaLinha != -1 && jogadaColuna != -1) {
+                meuTurno = false; // Impede novas jogadas até receber SUA_VEZ do servidor
                 saida.println("JOGADA " + jogadaLinha + " " + jogadaColuna);
-                meuTurno = false;
                 pararTemporizador();
                 jogadaLinha = -1;
                 jogadaColuna = -1;
