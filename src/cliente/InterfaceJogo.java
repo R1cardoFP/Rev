@@ -64,7 +64,7 @@ public class InterfaceJogo {
         TextField ipField = new TextField("");
         ipField.setPromptText("Endereço IP do servidor");
 
-        TextField portaField = new TextField("12345");
+        TextField portaField = new TextField("");
         portaField.setPromptText("Porta");
 
         TextField nomeJogadorField = new TextField();

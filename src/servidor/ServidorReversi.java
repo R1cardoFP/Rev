@@ -17,7 +17,7 @@ public class ServidorReversi {
     private static int jogadorAtual = 0;
 
     public static void main(String[] args) {
-        String ipManual = "192.168.1.138"; // <- Define aqui o IP
+        String ipManual = "192.168.1.13"; // <- Define aqui o IP
         int porta = 12345;
 
         try (ServerSocket serverSocket = new ServerSocket(porta, 0, InetAddress.getByName(ipManual))) {
