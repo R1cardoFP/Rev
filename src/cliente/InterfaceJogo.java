@@ -23,6 +23,8 @@ import modelo.Tabuleiro;
 
 import java.io.*;
 import java.net.Socket;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 
 public class InterfaceJogo {
     private final Stage stage;
@@ -44,6 +46,11 @@ public class InterfaceJogo {
 
     private String nomeJogadorLocal = "";
     private String nomeJogadorAdversario = "Aguardando...";
+
+    // Adicione estas variáveis para o chat
+    private TextArea chatArea;
+    private TextField chatInput;
+    private Button chatSendBtn;
 
     public InterfaceJogo(Stage stage) {
         this.stage = stage;
@@ -188,6 +195,9 @@ public class InterfaceJogo {
                         } else if (msg.startsWith("NOME_ADVERSARIO ")) {
                             nomeJogadorAdversario = msg.substring("NOME_ADVERSARIO ".length());
                             Platform.runLater(this::atualizarCabecalhoJogadores);
+                        } else if (msg.startsWith("CHAT ")) {
+                            String chatMsg = msg.substring(5);
+                            Platform.runLater(() -> adicionarMensagemChat(chatMsg));
                         }
                     }
                 } catch (IOException e) {
@@ -279,11 +289,6 @@ public class InterfaceJogo {
 
         botoes.getChildren().addAll(confirmarBtn, regrasBtn, sairBtn);
 
-        // Removido HBox.setHgrow para evitar bugs de hitbox
-        // HBox.setHgrow(confirmarBtn, javafx.scene.layout.Priority.ALWAYS);
-        // HBox.setHgrow(regrasBtn, javafx.scene.layout.Priority.ALWAYS);
-        // HBox.setHgrow(sairBtn, javafx.scene.layout.Priority.ALWAYS);
-
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
@@ -294,11 +299,43 @@ public class InterfaceJogo {
 
         VBox centro = new VBox(grelha);
         centro.setAlignment(Pos.CENTER);
-        root.setCenter(centro);
+
+        // Chat ao lado do tabuleiro
+        VBox chatBox = new VBox(8);
+        chatBox.setPadding(new Insets(10));
+        chatBox.setAlignment(Pos.TOP_CENTER);
+        chatBox.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 10px; -fx-background-radius: 10px;");
+        chatBox.setPrefWidth(260);
+
+        Label chatTitulo = new Label("Chat");
+        chatTitulo.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A;");
+
+        chatArea = new TextArea();
+        chatArea.setEditable(false);
+        chatArea.setWrapText(true);
+        chatArea.setPrefHeight(320);
+        chatArea.setStyle("-fx-font-size: 14px; -fx-control-inner-background: #f9f9f9;");
+
+        HBox chatInputBox = new HBox(6);
+        chatInput = new TextField();
+        chatInput.setPromptText("Escreva uma mensagem...");
+        chatInput.setPrefWidth(150);
+        chatSendBtn = new Button("Enviar");
+        chatSendBtn.setStyle("-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px;");
+
+        chatInputBox.getChildren().addAll(chatInput, chatSendBtn);
+
+        chatBox.getChildren().addAll(chatTitulo, chatArea, chatInputBox);
+
+        // Layout principal: tabuleiro à esquerda, chat à direita
+        HBox conteudo = new HBox(20, centro, chatBox);
+        conteudo.setAlignment(Pos.CENTER);
+        conteudo.setPadding(new Insets(20, 0, 20, 0));
+        root.setCenter(conteudo);
 
         grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
 
-        Scene cenaJogo = new Scene(root, 540, 630);
+        Scene cenaJogo = new Scene(root, 720, 650);
         stage.setScene(cenaJogo);
         stage.setTitle("Jogo Reversi");
         stage.show();
@@ -334,19 +371,63 @@ public class InterfaceJogo {
         });
 
         regrasBtn.setOnAction(e -> {
-            mostrarAlertaBonito(
-                "Regras do Reversi",
-                "1. O objetivo é ter mais peças da sua cor no final do jogo.\n" +
-                "2. Só pode jogar onde capturar pelo menos uma peça adversária.\n" +
-                "3. As peças capturadas mudam para a sua cor.\n" +
-                "4. O jogo termina quando não há mais jogadas possíveis.",
-                Alert.AlertType.INFORMATION
-            );
+            mostrarPopupRegras();
         });
 
         sairBtn.setOnAction(e -> {
             Platform.exit();
         });
+
+        // Chat: enviar mensagem ao clicar ou pressionar Enter
+        chatSendBtn.setOnAction(e -> enviarMensagemChat());
+        chatInput.setOnAction(e -> enviarMensagemChat());
+    }
+
+    private void enviarMensagemChat() {
+        String texto = chatInput.getText().trim();
+        if (!texto.isEmpty()) {
+            String mensagem = nomeJogadorLocal + ": " + texto;
+            saida.println("CHAT " + mensagem);
+            adicionarMensagemChat(mensagem); // Mostra imediatamente no próprio chat
+            chatInput.clear();
+        }
+    }
+
+    private void adicionarMensagemChat(String mensagem) {
+        chatArea.appendText(mensagem + "\n");
+    }
+
+    private void mostrarPopupRegras() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Regras do Reversi");
+        alert.setHeaderText(null);
+
+        // HTML-like format para melhor apresentação
+        String regras =
+            " <b>Objetivo:</b> Ter mais peças da sua cor no final do jogo.<br><br>" +
+            " <b>Regras:</b><br>" +
+            " 1. Só pode jogar onde capturar pelo menos uma peça adversária.<br>" +
+            " 2. As peças capturadas mudam para a sua cor.<br>" +
+            " 3. O jogo termina quando não há mais jogadas possíveis.<br><br>" +
+            " <b>Dica:</b> Tente controlar os cantos do tabuleiro!";
+
+        // Usar um Label estilizado para simular HTML
+        Label regrasLabel = new Label();
+        regrasLabel.setText("Objetivo:\n  Ter mais peças da sua cor no final do jogo.\n\n" +
+                "Regras:\n" +
+                "  1. Só pode jogar onde capturar pelo menos uma peça adversária.\n" +
+                "  2. As peças capturadas mudam para a sua cor.\n" +
+                "  3. O jogo termina quando não há mais jogadas possíveis.\n\n" +
+                "Dica: Tente controlar os cantos do tabuleiro!");
+        regrasLabel.setStyle("-fx-font-size: 15px; -fx-font-family: 'Segoe UI', sans-serif; -fx-padding: 10 0 0 0;");
+
+        alert.getDialogPane().setContent(regrasLabel);
+        alert.getDialogPane().setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); " +
+            "-fx-font-size: 15px; -fx-font-family: 'Segoe UI', sans-serif; " +
+            "-fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 10px;"
+        );
+        alert.showAndWait();
     }
 
     private double getCellSize() {
