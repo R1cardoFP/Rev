@@ -265,7 +265,11 @@ public class InterfaceJogo {
         root.setTop(topo);
 
         grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
-        root.setCenter(grelha);
+        HBox tabuleiroContainer = new HBox();
+        tabuleiroContainer.setAlignment(Pos.CENTER);
+        tabuleiroContainer.getChildren().add(grelha);
+        tabuleiroContainer.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
+        root.setCenter(tabuleiroContainer);
 
         Scene cenaJogo = new Scene(root, 520, 600);
         stage.setScene(cenaJogo);
