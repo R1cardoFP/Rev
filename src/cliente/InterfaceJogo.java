@@ -52,6 +52,10 @@ public class InterfaceJogo {
     private TextField chatInput;
     private Button chatSendBtn;
 
+    // Adicione estas variáveis de instância para evitar erro de escopo
+    private Label nomesJogadoresLabel;
+    private Label contagemPecasLabel;
+
     public InterfaceJogo(Stage stage) {
         this.stage = stage;
         this.grelha = new GridPane();
@@ -148,82 +152,93 @@ public class InterfaceJogo {
     }
 
     private void ligarAoServidor(String ip, int porto, String nomeJogador) {
-        try {
-            socket = new Socket(ip, porto);
-            entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            saida = new PrintWriter(socket.getOutputStream(), true);
-
-            // Enviar o nome do jogador ao servidor
-            saida.println(nomeJogador);
-
-            String cor = entrada.readLine();
-            if (cor == null || cor.isEmpty()) {
-                throw new IOException("Não foi possível obter a cor do servidor.");
-            }
-            minhaCor = cor.charAt(0);
-
-            mostrarJanelaEspera();
-
-            // Thread para receber mensagens do servidor
-            new Thread(() -> {
-                try {
-                    String msg;
-                    while ((msg = entrada.readLine()) != null) {
-                        if (msg.equals("COMEÇAR")) {
-                            Platform.runLater(() -> mostrarJanelaJogo());
-                        } else if (msg.startsWith("JOGADA")) {
-                            String[] partes = msg.split(" ");
-                            int linha = Integer.parseInt(partes[1]);
-                            int coluna = Integer.parseInt(partes[2]);
-                            char corJogada = partes[3].charAt(0);
-                            tabuleiro.jogar(linha, coluna, corJogada);
-                            Platform.runLater(this::atualizarTabuleiro);
-                        } else if (msg.equals("FIM")) {
-                            pararTemporizador();
-                            Platform.runLater(() -> {
-                                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                                alert.setHeaderText("Fim do Jogo");
-                                int pretas = tabuleiro.contarPecas('B');
-                                int brancas = tabuleiro.contarPecas('W');
-                                alert.setContentText("Pretas: " + pretas + "\nBrancas: " + brancas);
-                                alert.showAndWait();
-                            });
-                        } else if (msg.equals("SUA_VEZ")) {
-                            meuTurno = true;
-                            iniciarTemporizador();
-                            Platform.runLater(this::atualizarTabuleiro);
-                        } else if (msg.startsWith("NOME_ADVERSARIO ")) {
-                            nomeJogadorAdversario = msg.substring("NOME_ADVERSARIO ".length());
-                            Platform.runLater(this::atualizarCabecalhoJogadores);
-                        } else if (msg.startsWith("CHAT ")) {
-                            String chatMsg = msg.substring(5);
-                            Platform.runLater(() -> adicionarMensagemChat(chatMsg));
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setHeaderText("Erro de comunicação com o servidor");
-                        alert.setContentText(e.getMessage());
-                        alert.showAndWait();
-                    });
-                }
-            }).start();
-
-        } catch (IOException e) {
+        // Só tenta conectar se o IP for válido
+        if (!ip.matches("^\\d{1,3}(\\.\\d{1,3}){3}$") && !ip.equalsIgnoreCase("localhost")) {
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText("Erro a ligar ao servidor");
-                alert.setContentText(e.getMessage());
+                alert.setHeaderText("IP inválido");
+                alert.setContentText("Por favor, insira um endereço IP válido.");
                 alert.showAndWait();
             });
+            return;
         }
-    }
 
-    // Elementos para atualizar nomes e contagem de peças
-    private Label nomesJogadoresLabel = new Label();
-    private Label contagemPecasLabel = new Label();
+        new Thread(() -> {
+            try {
+                socket = new Socket(ip, porto);
+                entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                saida = new PrintWriter(socket.getOutputStream(), true);
+
+                // Enviar o nome do jogador ao servidor
+                saida.println(nomeJogador);
+
+                String cor = entrada.readLine();
+                if (cor == null || cor.isEmpty()) {
+                    throw new IOException("Não foi possível obter a cor do servidor.");
+                }
+                minhaCor = cor.charAt(0);
+
+                // Mostra a janela de espera após conexão bem-sucedida
+                Platform.runLater(this::mostrarJanelaEspera);
+
+                // Thread para receber mensagens do servidor
+                Thread leituraThread = new Thread(() -> {
+                    try {
+                        String msg;
+                        while ((msg = entrada.readLine()) != null) {
+                            if (msg.equals("COMEÇAR")) {
+                                Platform.runLater(this::mostrarJanelaJogo);
+                            } else if (msg.startsWith("JOGADA")) {
+                                String[] partes = msg.split(" ");
+                                int linha = Integer.parseInt(partes[1]);
+                                int coluna = Integer.parseInt(partes[2]);
+                                char corJogada = partes[3].charAt(0);
+                                tabuleiro.jogar(linha, coluna, corJogada);
+                                Platform.runLater(this::atualizarTabuleiro);
+                            } else if (msg.equals("FIM")) {
+                                pararTemporizador();
+                                Platform.runLater(() -> {
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                    alert.setHeaderText("Fim do Jogo");
+                                    int pretas = tabuleiro.contarPecas('B');
+                                    int brancas = tabuleiro.contarPecas('W');
+                                    alert.setContentText("Pretas: " + pretas + "\nBrancas: " + brancas);
+                                    alert.showAndWait();
+                                });
+                            } else if (msg.equals("SUA_VEZ")) {
+                                meuTurno = true;
+                                iniciarTemporizador();
+                                Platform.runLater(this::atualizarTabuleiro);
+                            } else if (msg.startsWith("NOME_ADVERSARIO ")) {
+                                nomeJogadorAdversario = msg.substring("NOME_ADVERSARIO ".length());
+                                Platform.runLater(this::atualizarCabecalhoJogadores);
+                            } else if (msg.startsWith("CHAT ")) {
+                                String chatMsg = msg.substring(5);
+                                Platform.runLater(() -> adicionarMensagemChat(chatMsg));
+                            }
+                        }
+                    } catch (IOException e) {
+                        Platform.runLater(() -> {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setHeaderText("Erro de comunicação com o servidor");
+                            alert.setContentText(e.getMessage());
+                            alert.showAndWait();
+                        });
+                    }
+                });
+                leituraThread.setDaemon(true);
+                leituraThread.start();
+
+            } catch (IOException e) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setHeaderText("Erro a ligar ao servidor");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                });
+            }
+        }).start();
+    }
 
     private void mostrarJanelaJogo() {
         BorderPane root = new BorderPane();
@@ -390,6 +405,8 @@ public class InterfaceJogo {
             saida.println("CHAT " + mensagem);
             adicionarMensagemChat(mensagem); // Mostra imediatamente no próprio chat
             chatInput.clear();
+            // Não mostrar de novo quando receber do servidor
+            // O controlo é feito no listener acima
         }
     }
 
