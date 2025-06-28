@@ -216,25 +216,25 @@ public class InterfaceJogo {
 
     private void mostrarJanelaJogo() {
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff);");
+        root.setStyle("-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);");
 
         // Topo: nomes, contagem de peças, temporizador e botões
         VBox topo = new VBox();
         topo.setAlignment(Pos.CENTER);
-        topo.setSpacing(10);
+        topo.setSpacing(8);
 
         // Nomes dos jogadores
         nomesJogadoresLabel = new Label();
-        nomesJogadoresLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A;");
+        nomesJogadoresLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #7a4c1e; -fx-effect: dropshadow(gaussian, #fff, 2, 0, 0, 1);");
         atualizarCabecalhoJogadores();
 
         // Contagem de peças
         contagemPecasLabel = new Label();
-        contagemPecasLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #333;");
-        atualizarCabecalhoJogadores();
+        contagemPecasLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #444; -fx-padding: 2 0 8 0;");
+        atualizarContagemPecas();
 
         // Temporizador
-        temporizadorLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #8B5C2A;");
+        temporizadorLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #8B5C2A; -fx-padding: 0 0 8 0;");
 
         // Botões grandes e bonitos
         HBox botoes = new HBox(30);
@@ -245,8 +245,8 @@ public class InterfaceJogo {
         Button regrasBtn = new Button("Regras");
         Button sairBtn = new Button("Sair");
 
-        String estiloBtn = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px; -fx-pref-width: 180px; -fx-pref-height: 42px;";
-        String estiloBtnHover = "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px; -fx-pref-width: 180px; -fx-pref-height: 42px;";
+        String estiloBtn = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px; -fx-pref-width: 180px; -fx-pref-height: 42px; -fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);";
+        String estiloBtnHover = "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px; -fx-pref-width: 180px; -fx-pref-height: 42px; -fx-effect: dropshadow(gaussian, #8B5C2A, 2, 0, 0, 1);";
 
         confirmarBtn.setStyle(estiloBtn);
         regrasBtn.setStyle(estiloBtn);
@@ -264,10 +264,10 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
+        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px; -fx-padding: 18 0 18 0;");
         root.setCenter(grelha);
 
-        Scene cenaJogo = new Scene(root, 520, 600);
+        Scene cenaJogo = new Scene(root, 540, 630);
         stage.setScene(cenaJogo);
         stage.setTitle("Jogo Reversi");
         stage.show();
@@ -293,7 +293,7 @@ public class InterfaceJogo {
             if (!meuTurno) return;
             if (jogadaLinha != -1 && jogadaColuna != -1) {
                 saida.println("JOGADA " + jogadaLinha + " " + jogadaColuna);
-                meuTurno = false;
+                meuTurno = false; // Impede jogadas até o servidor devolver SUA_VEZ
                 pararTemporizador();
                 jogadaLinha = -1;
                 jogadaColuna = -1;
@@ -373,7 +373,7 @@ public class InterfaceJogo {
                 }
             }
         }
-        atualizarCabecalhoJogadores();
+        atualizarContagemPecas();
     }
 
     private void atualizarCabecalhoJogadores() {
@@ -383,6 +383,12 @@ public class InterfaceJogo {
             nomeJogadorLocal + " (" + corLocal + ")  vs  " +
             nomeJogadorAdversario + " (" + corAdv + ")"
         );
+    }
+
+    private void atualizarContagemPecas() {
+        int pretas = tabuleiro.contarPecas('B');
+        int brancas = tabuleiro.contarPecas('W');
+        contagemPecasLabel.setText("⚫ Pretas: " + pretas + "   |   ⚪ Brancas: " + brancas);
     }
 
     private void iniciarTemporizador() {
