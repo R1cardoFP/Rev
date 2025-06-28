@@ -514,6 +514,14 @@ public class InterfaceJogo {
                 }
             }
         }
+
+        // Atualizar o temporizador com a mensagem correta
+        if (meuTurno) {
+            temporizadorLabel.setText("Turno: Você | Tempo restante: " + tempoRestante);
+        } else {
+            temporizadorLabel.setText("Turno: " + nomeJogadorAdversario + " | Aguardando...");
+        }
+
         atualizarContagemPecas();
     }
 
