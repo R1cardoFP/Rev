@@ -58,10 +58,10 @@ public class InterfaceJogo {
         caixa.setPadding(new Insets(20));
         caixa.setAlignment(Pos.CENTER);
 
-        TextField ipField = new TextField("localhost");
+        TextField ipField = new TextField("");
         ipField.setPromptText("Endereço IP do servidor");
 
-        TextField portaField = new TextField("12345");
+        TextField portaField = new TextField("");
         portaField.setPromptText("Porta");
 
         TextField nomeJogadorField = new TextField();
