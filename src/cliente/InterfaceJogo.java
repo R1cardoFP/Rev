@@ -150,20 +150,31 @@ public class InterfaceJogo {
     }
 
     private void mostrarJanelaEspera() {
-        VBox caixa = new VBox(18);
-        caixa.setPadding(new Insets(40));
+        VBox caixa = new VBox(22);
+        caixa.setPadding(new Insets(48, 36, 48, 36));
         caixa.setAlignment(Pos.CENTER);
-        caixa.setStyle("-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); -fx-border-radius: 12px; -fx-background-radius: 12px;");
+        caixa.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);" +
+            "-fx-border-radius: 18px; -fx-background-radius: 18px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
+        );
 
-        Label esperaLabel = new Label("A aguardar outro jogador para iniciar o jogo...");
-        esperaLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A;");
+        Label titulo = new Label("Aguardando outro jogador...");
+        titulo.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A; -fx-padding: 0 0 10 0;");
 
-        caixa.getChildren().add(esperaLabel);
+        Label info = new Label("Assim que outro jogador se conectar,\no jogo irá começar automaticamente.");
+        info.setStyle("-fx-font-size: 16px; -fx-text-fill: #444; -fx-padding: 0 0 10 0; -fx-alignment: center;");
 
-        Scene cenaEspera = new Scene(caixa, 400, 180);
+        // Animação simples de "loading"
+        Label loading = new Label("⏳");
+        loading.setStyle("-fx-font-size: 32px; -fx-padding: 10 0 0 0;");
+
+        caixa.getChildren().addAll(titulo, info, loading);
+
+        Scene cenaEspera = new Scene(caixa, 400, 220);
         Platform.runLater(() -> {
             stage.setScene(cenaEspera);
-            stage.setTitle("Esperar pelo outro jogador");
+            stage.setTitle("Aguardando Jogador");
             stage.show();
         });
     }
@@ -195,10 +206,8 @@ public class InterfaceJogo {
                 }
                 minhaCor = cor.charAt(0);
 
-                // Mostra a janela de espera após conexão bem-sucedida
                 Platform.runLater(this::mostrarJanelaEspera);
 
-                // Thread para receber mensagens do servidor
                 Thread leituraThread = new Thread(() -> {
                     try {
                         String msg;
@@ -231,7 +240,12 @@ public class InterfaceJogo {
                                 Platform.runLater(this::atualizarCabecalhoJogadores);
                             } else if (msg.startsWith("CHAT ")) {
                                 String chatMsg = msg.substring(5);
-                                Platform.runLater(() -> adicionarMensagemChat(chatMsg));
+                                // Só adiciona se não for a última mensagem local (evita duplicação)
+                                Platform.runLater(() -> {
+                                    if (!chatMsg.startsWith(nomeJogadorLocal + ":")) {
+                                        adicionarMensagemChat(chatMsg);
+                                    }
+                                });
                             }
                         }
                     } catch (IOException e) {
@@ -429,14 +443,19 @@ public class InterfaceJogo {
         String texto = chatInput.getText().trim();
         if (!texto.isEmpty()) {
             String mensagem = nomeJogadorLocal + ": " + texto;
+            // Envia sempre, independentemente do turno
             saida.println("CHAT " + mensagem);
+            adicionarMensagemChat(mensagem); // Mostra imediatamente no próprio chat
             chatInput.clear();
-            // Não adicionar localmente, só mostrar quando vier do servidor
         }
     }
 
     private void adicionarMensagemChat(String mensagem) {
-        chatArea.appendText(mensagem + "\n");
+        // Evita duplicação: só adiciona se a última linha for diferente
+        String conteudoAtual = chatArea.getText();
+        if (!conteudoAtual.endsWith(mensagem + "\n")) {
+            chatArea.appendText(mensagem + "\n");
+        }
     }
 
     private void mostrarPopupRegras() {
