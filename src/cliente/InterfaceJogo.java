@@ -130,7 +130,7 @@ public class InterfaceJogo {
             entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             saida = new PrintWriter(socket.getOutputStream(), true);
 
-            // Enviar o nome do jogador ao servidor (se o protocolo aceitar)
+            // Enviar o nome do jogador ao servidor
             saida.println(nomeJogador);
 
             String cor = entrada.readLine();
@@ -139,13 +139,6 @@ public class InterfaceJogo {
             }
             minhaCor = cor.charAt(0);
 
-            // Receber nome do adversário, se o protocolo enviar (opcional)
-            String possivelNomeAdv = entrada.readLine();
-            if (possivelNomeAdv != null && !possivelNomeAdv.isEmpty()) {
-                nomeJogadorAdversario = possivelNomeAdv;
-            }
-
-            // Mostrar janela de espera depois da conexão e cor atribuída
             mostrarJanelaEspera();
 
             // Thread para receber mensagens do servidor
@@ -177,7 +170,6 @@ public class InterfaceJogo {
                             iniciarTemporizador();
                             Platform.runLater(this::atualizarTabuleiro);
                         } else if (msg.startsWith("NOME_ADVERSARIO ")) {
-                            // Protocolo opcional: servidor envia nome do adversário
                             nomeJogadorAdversario = msg.substring("NOME_ADVERSARIO ".length());
                             Platform.runLater(this::atualizarCabecalhoJogadores);
                         }
