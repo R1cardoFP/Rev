@@ -292,20 +292,16 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-<<<<<<< HEAD
         grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
+        grelha.setMinSize(400, 400);
+        grelha.setMaxSize(400, 400);
+        grelha.setPrefSize(400, 400);
+
         HBox tabuleiroContainer = new HBox();
         tabuleiroContainer.setAlignment(Pos.CENTER);
         tabuleiroContainer.getChildren().add(grelha);
         tabuleiroContainer.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
         root.setCenter(tabuleiroContainer);
-=======
-        // Tabuleiro com tamanho fixo e centrado
-        grelha.setMinSize(400, 400);
-        grelha.setMaxSize(400, 400);
-        grelha.setPrefSize(400, 400);
->>>>>>> 00c462d030b10222cb39c8eb8fae54c34c4fc6db
-
         VBox centro = new VBox(grelha);
         centro.setAlignment(Pos.CENTER);
 
@@ -384,7 +380,12 @@ public class InterfaceJogo {
         });
 
         sairBtn.setOnAction(e -> {
-            Platform.exit();
+            if (saida != null) {
+                saida.println("SAIR");
+            }
+            meuTurno = false;
+            pararTemporizador();
+            Platform.runLater(this::mostrarJanelaEspera); // Volta para a tela de espera
         });
 
         // Chat: enviar mensagem ao clicar ou pressionar Enter
