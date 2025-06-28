@@ -60,7 +60,7 @@ public class InterfaceJogo {
         this.stage = stage;
         this.grelha = new GridPane();
         this.tabuleiro = new Tabuleiro();
-        this.temporizadorLabel = new Label("Tempo restante: ");
+        this.temporizadorLabel = new Label("");
         grelha.setGridLinesVisible(false);
     }
 

@@ -82,6 +82,21 @@ public class ServidorReversi {
                     for (PrintWriter p : jogadores) {
                         p.println(linha);
                     }
+                } else if (linha.startsWith("SAIR")) {
+                    System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo."); // Mensagem no terminal
+                    jogadores.get(jogadorAtual).println("SAIU");
+                    jogadores.remove(jogadorAtual);
+                    entradas.remove(jogadorAtual);
+                    nomes.remove(jogadorAtual);
+
+                    if (jogadores.size() == 1) {
+                        jogadores.get(0).println("ESPERANDO");
+                    }
+
+                    if (jogadores.size() > 0) {
+                        jogadorAtual = jogadorAtual % jogadores.size();
+                    }
+                    continue;
                 }
             }
 
