@@ -226,7 +226,6 @@ public class InterfaceJogo {
         nomesJogadoresLabel = new Label();
         contagemPecasLabel = new Label();
 
-        // Fontes fixas para evitar zoom
         nomesJogadoresLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #7a4c1e;");
         contagemPecasLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #444;");
 
@@ -243,13 +242,26 @@ public class InterfaceJogo {
         Button regrasBtn = new Button("Regras");
         Button sairBtn = new Button("Sair");
 
-        // Botões com tamanho fixo e responsivos apenas em largura
+        // Tamanhos fixos para evitar bugs de hitbox
+        confirmarBtn.setMinWidth(180);
         confirmarBtn.setPrefWidth(180);
+        confirmarBtn.setMaxWidth(180);
+        regrasBtn.setMinWidth(120);
         regrasBtn.setPrefWidth(120);
+        regrasBtn.setMaxWidth(120);
+        sairBtn.setMinWidth(100);
         sairBtn.setPrefWidth(100);
+        sairBtn.setMaxWidth(100);
+
+        confirmarBtn.setMinHeight(42);
         confirmarBtn.setPrefHeight(42);
+        confirmarBtn.setMaxHeight(42);
+        regrasBtn.setMinHeight(42);
         regrasBtn.setPrefHeight(42);
+        regrasBtn.setMaxHeight(42);
+        sairBtn.setMinHeight(42);
         sairBtn.setPrefHeight(42);
+        sairBtn.setMaxHeight(42);
 
         String estiloBtn = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px;";
         String estiloBtnHover = "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px;";
@@ -267,29 +279,35 @@ public class InterfaceJogo {
 
         botoes.getChildren().addAll(confirmarBtn, regrasBtn, sairBtn);
 
-        HBox.setHgrow(confirmarBtn, javafx.scene.layout.Priority.ALWAYS);
-        HBox.setHgrow(regrasBtn, javafx.scene.layout.Priority.ALWAYS);
-        HBox.setHgrow(sairBtn, javafx.scene.layout.Priority.ALWAYS);
+        // Removido HBox.setHgrow para evitar bugs de hitbox
+        // HBox.setHgrow(confirmarBtn, javafx.scene.layout.Priority.ALWAYS);
+        // HBox.setHgrow(regrasBtn, javafx.scene.layout.Priority.ALWAYS);
+        // HBox.setHgrow(sairBtn, javafx.scene.layout.Priority.ALWAYS);
 
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
+        // Tabuleiro com tamanho fixo e centrado
+        grelha.setMinSize(400, 400);
+        grelha.setMaxSize(400, 400);
+        grelha.setPrefSize(400, 400);
+
+        VBox centro = new VBox(grelha);
+        centro.setAlignment(Pos.CENTER);
+        root.setCenter(centro);
+
         grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
-        root.setCenter(grelha);
 
         Scene cenaJogo = new Scene(root, 540, 630);
         stage.setScene(cenaJogo);
         stage.setTitle("Jogo Reversi");
         stage.show();
 
-        // O tabuleiro é responsivo ao tamanho da janela
-        grelha.layoutBoundsProperty().addListener((obs, oldVal, newVal) -> atualizarTabuleiro());
-
         atualizarTabuleiro();
 
         grelha.setOnMouseClicked(e -> {
             if (!meuTurno) return;
-            double cellSize = getCellSize();
+            double cellSize = 400.0 / 8.0;
             int coluna = (int) (e.getX() / cellSize);
             int linha = (int) (e.getY() / cellSize);
             if (tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
@@ -332,13 +350,8 @@ public class InterfaceJogo {
     }
 
     private double getCellSize() {
-        double largura = grelha.getWidth();
-        double altura = grelha.getHeight();
-        if (largura == 0 || altura == 0) {
-            largura = stage.getScene().getWidth();
-            altura = stage.getScene().getHeight() - 180;
-        }
-        return Math.min(largura, altura) / 8.0;
+        // Tamanho fixo do tabuleiro
+        return 400.0 / 8.0;
     }
 
     private void atualizarTabuleiro() {
