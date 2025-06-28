@@ -77,6 +77,11 @@ public class ServidorReversi {
                 } else if (linha.equals("TEMPO_ESGOTADO")) {
                     jogadorAtual = (jogadorAtual + 1) % 2;
                     enviarMensagemATodos("SUA_VEZ");
+                } else if (linha.startsWith("CHAT ")) {
+                    // Retransmitir mensagem de chat para ambos (garante que todos veem, inclusive quem enviou)
+                    for (PrintWriter p : jogadores) {
+                        p.println(linha);
+                    }
                 }
             }
 
