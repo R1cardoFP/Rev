@@ -231,7 +231,7 @@ public class InterfaceJogo {
         // Contagem de peças
         contagemPecasLabel = new Label();
         contagemPecasLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #333;");
-        atualizarContagemPecas();
+        atualizarCabecalhoJogadores();
 
         // Temporizador
         temporizadorLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #8B5C2A;");
@@ -373,7 +373,16 @@ public class InterfaceJogo {
                 }
             }
         }
-        atualizarContagemPecas();
+        atualizarCabecalhoJogadores();
+    }
+
+    private void atualizarCabecalhoJogadores() {
+        String corLocal = minhaCor == 'B' ? "Pretas" : "Brancas";
+        String corAdv = minhaCor == 'B' ? "Brancas" : "Pretas";
+        nomesJogadoresLabel.setText(
+            nomeJogadorLocal + " (" + corLocal + ")  vs  " +
+            nomeJogadorAdversario + " (" + corAdv + ")"
+        );
     }
 
     private void iniciarTemporizador() {
