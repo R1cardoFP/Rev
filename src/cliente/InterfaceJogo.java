@@ -50,6 +50,7 @@ public class InterfaceJogo {
         this.grelha = new GridPane();
         this.tabuleiro = new Tabuleiro();
         this.temporizadorLabel = new Label("Tempo restante: ");
+        grelha.setGridLinesVisible(false);
     }
 
     public void mostrar() {
@@ -218,25 +219,20 @@ public class InterfaceJogo {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);");
 
-        // Topo: nomes, contagem de peças, temporizador e botões
         VBox topo = new VBox();
         topo.setAlignment(Pos.CENTER);
         topo.setSpacing(8);
 
-        // Nomes dos jogadores
         nomesJogadoresLabel = new Label();
-        nomesJogadoresLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #7a4c1e; -fx-effect: dropshadow(gaussian, #fff, 2, 0, 0, 1);");
+        nomesJogadoresLabel.setStyle("-fx-font-size: 2.5vw; -fx-font-weight: bold; -fx-text-fill: #7a4c1e;");
         atualizarCabecalhoJogadores();
 
-        // Contagem de peças
         contagemPecasLabel = new Label();
-        contagemPecasLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #444; -fx-padding: 2 0 8 0;");
+        contagemPecasLabel.setStyle("-fx-font-size: 2vw; -fx-font-weight: bold; -fx-text-fill: #444;");
         atualizarContagemPecas();
 
-        // Temporizador
-        temporizadorLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #8B5C2A; -fx-padding: 0 0 8 0;");
+        temporizadorLabel.setStyle("-fx-font-size: 1.7vw; -fx-text-fill: #8B5C2A;");
 
-        // Botões grandes e bonitos
         HBox botoes = new HBox(30);
         botoes.setAlignment(Pos.CENTER);
         botoes.setPadding(new Insets(10, 0, 10, 0));
@@ -245,8 +241,13 @@ public class InterfaceJogo {
         Button regrasBtn = new Button("Regras");
         Button sairBtn = new Button("Sair");
 
-        String estiloBtn = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px; -fx-pref-width: 180px; -fx-pref-height: 42px; -fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);";
-        String estiloBtnHover = "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px; -fx-pref-width: 180px; -fx-pref-height: 42px; -fx-effect: dropshadow(gaussian, #8B5C2A, 2, 0, 0, 1);";
+        // Responsividade dos botões
+        confirmarBtn.setMaxWidth(Double.MAX_VALUE);
+        regrasBtn.setMaxWidth(Double.MAX_VALUE);
+        sairBtn.setMaxWidth(Double.MAX_VALUE);
+
+        String estiloBtn = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.7vw; -fx-background-radius: 10px;";
+        String estiloBtnHover = "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-weight: bold; -fx-font-size: 1.7vw; -fx-background-radius: 10px;";
 
         confirmarBtn.setStyle(estiloBtn);
         regrasBtn.setStyle(estiloBtn);
@@ -261,10 +262,15 @@ public class InterfaceJogo {
 
         botoes.getChildren().addAll(confirmarBtn, regrasBtn, sairBtn);
 
+        // Responsividade dos botões no HBox
+        HBox.setHgrow(confirmarBtn, javafx.scene.layout.Priority.ALWAYS);
+        HBox.setHgrow(regrasBtn, javafx.scene.layout.Priority.ALWAYS);
+        HBox.setHgrow(sairBtn, javafx.scene.layout.Priority.ALWAYS);
+
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px; -fx-padding: 18 0 18 0;");
+        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
         root.setCenter(grelha);
 
         Scene cenaJogo = new Scene(root, 540, 630);
@@ -272,13 +278,20 @@ public class InterfaceJogo {
         stage.setTitle("Jogo Reversi");
         stage.show();
 
+        // Responsividade do tabuleiro
+        grelha.prefWidthProperty().bind(root.widthProperty());
+        grelha.prefHeightProperty().bind(root.heightProperty().subtract(topo.heightProperty()).subtract(40));
+
+        root.widthProperty().addListener((obs, oldVal, newVal) -> atualizarTabuleiro());
+        root.heightProperty().addListener((obs, oldVal, newVal) -> atualizarTabuleiro());
+
         atualizarTabuleiro();
 
-        // Selecionar jogada ao clicar no tabuleiro
         grelha.setOnMouseClicked(e -> {
             if (!meuTurno) return;
-            int coluna = (int) (e.getX() / 50);
-            int linha = (int) (e.getY() / 50);
+            double cellSize = getCellSize();
+            int coluna = (int) (e.getX() / cellSize);
+            int linha = (int) (e.getY() / cellSize);
             if (tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
                 jogadaLinha = linha;
                 jogadaColuna = coluna;
@@ -288,12 +301,11 @@ public class InterfaceJogo {
             }
         });
 
-        // Confirmar jogada
         confirmarBtn.setOnAction(e -> {
             if (!meuTurno) return;
             if (jogadaLinha != -1 && jogadaColuna != -1) {
                 saida.println("JOGADA " + jogadaLinha + " " + jogadaColuna);
-                meuTurno = false; // Impede jogadas até o servidor devolver SUA_VEZ
+                meuTurno = false;
                 pararTemporizador();
                 jogadaLinha = -1;
                 jogadaColuna = -1;
@@ -303,7 +315,6 @@ public class InterfaceJogo {
             }
         });
 
-        // Mostrar regras
         regrasBtn.setOnAction(e -> {
             mostrarAlertaBonito(
                 "Regras do Reversi",
@@ -315,59 +326,54 @@ public class InterfaceJogo {
             );
         });
 
-        // Sair do jogo
         sairBtn.setOnAction(e -> {
             Platform.exit();
         });
     }
 
-    private void mostrarAlertaBonito(String titulo, String mensagem, Alert.AlertType tipo) {
-        Alert alert = new Alert(tipo);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        Stage alertStage = (Stage) alert.getDialogPane().getScene().getWindow();
-        alert.getDialogPane().setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); " +
-            "-fx-font-size: 15px; -fx-font-family: 'Segoe UI', sans-serif; " +
-            "-fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 10px;"
-        );
-        alertStage.getScene().getRoot().setStyle("-fx-background-radius: 10px;");
-        alert.showAndWait();
+    // Calcula o tamanho da célula do tabuleiro de acordo com o espaço disponível
+    private double getCellSize() {
+        double largura = grelha.getWidth();
+        double altura = grelha.getHeight();
+        if (largura == 0 || altura == 0) {
+            largura = stage.getScene().getWidth();
+            altura = stage.getScene().getHeight() - 180;
+        }
+        return Math.min(largura, altura) / 8.0;
     }
 
     private void atualizarTabuleiro() {
         grelha.getChildren().clear();
+        double cellSize = getCellSize();
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
-                Rectangle r = new Rectangle(50, 50);
-                // Alterna entre cinzento e castanho
+                Rectangle r = new Rectangle(cellSize, cellSize);
                 if ((linha + coluna) % 2 == 0) {
-                    r.setFill(Color.web("#B0B0B0")); // cinzento claro
+                    r.setFill(Color.web("#B0B0B0"));
                 } else {
-                    r.setFill(Color.web("#8B5C2A")); // castanho
+                    r.setFill(Color.web("#8B5C2A"));
                 }
-                r.setArcWidth(12);
-                r.setArcHeight(12);
+                r.setArcWidth(cellSize * 0.24);
+                r.setArcHeight(cellSize * 0.24);
                 r.setStroke(Color.web("#333"));
-                r.setStrokeWidth(1.2);
+                r.setStrokeWidth(cellSize * 0.025);
                 grelha.add(r, coluna, linha);
 
                 char peca = tabuleiro.getPeca(linha, coluna);
                 if (peca != '-') {
-                    Circle c = new Circle(20);
+                    Circle c = new Circle(cellSize * 0.4);
                     c.setFill(peca == 'B' ? Color.BLACK : Color.WHITE);
                     c.setStroke(Color.web("#555"));
-                    c.setStrokeWidth(2);
+                    c.setStrokeWidth(cellSize * 0.09);
                     grelha.add(c, coluna, linha);
                 } else if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
                     if (linha == jogadaLinha && coluna == jogadaColuna) {
-                        Circle marcador = new Circle(20);
-                        marcador.setFill(Color.web("#FFD70080")); // amarelo transparente
+                        Circle marcador = new Circle(cellSize * 0.4);
+                        marcador.setFill(Color.web("#FFD70080"));
                         grelha.add(marcador, coluna, linha);
                     } else {
-                        Circle marcador = new Circle(7);
-                        marcador.setFill(Color.web("#FFD700B0")); // amarelo mais visível
+                        Circle marcador = new Circle(cellSize * 0.14);
+                        marcador.setFill(Color.web("#FFD700B0"));
                         grelha.add(marcador, coluna, linha);
                     }
                 }
@@ -416,5 +422,19 @@ public class InterfaceJogo {
         if (temporizador != null) {
             temporizador.stop();
         }
+    }
+
+    // Adicione este método à classe InterfaceJogo
+    private void mostrarAlertaBonito(String titulo, String mensagem, Alert.AlertType tipo) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensagem);
+        alert.getDialogPane().setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); " +
+            "-fx-font-size: 15px; -fx-font-family: 'Segoe UI', sans-serif; " +
+            "-fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 10px;"
+        );
+        alert.showAndWait();
     }
 }
