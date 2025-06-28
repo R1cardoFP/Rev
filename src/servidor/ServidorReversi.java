@@ -62,6 +62,7 @@ public class ServidorReversi {
                     int y = Integer.parseInt(partes[2]);
                     char cor = cores[jogadorAtual];
 
+                    // Só processa a jogada se for o turno correto!
                     if (tabuleiro.jogadaValida(x, y, cor)) {
                         tabuleiro.jogar(x, y, cor);
                         enviarJogadaParaJogadores(x, y, cor);
@@ -70,12 +71,36 @@ public class ServidorReversi {
                             enviarMensagemATodos("FIM");
                             break;
                         } else {
-                            jogadorAtual = (jogadorAtual + 1) % 2;
+                            // Só passa o turno se o próximo jogador tiver jogada válida
+                            int proximo = (jogadorAtual + 1) % 2;
+                            boolean proximoTemJogada = false;
+                            for (int i = 0; i < 8 && !proximoTemJogada; i++) {
+                                for (int j = 0; j < 8 && !proximoTemJogada; j++) {
+                                    if (tabuleiro.jogadaValida(i, j, cores[proximo])) {
+                                        proximoTemJogada = true;
+                                    }
+                                }
+                            }
+                            if (proximoTemJogada) {
+                                jogadorAtual = proximo;
+                            }
                             enviarMensagemATodos("SUA_VEZ");
                         }
                     }
                 } else if (linha.equals("TEMPO_ESGOTADO")) {
-                    jogadorAtual = (jogadorAtual + 1) % 2;
+                    // Só passa o turno se o próximo jogador tiver jogada válida
+                    int proximo = (jogadorAtual + 1) % 2;
+                    boolean proximoTemJogada = false;
+                    for (int i = 0; i < 8 && !proximoTemJogada; i++) {
+                        for (int j = 0; j < 8 && !proximoTemJogada; j++) {
+                            if (tabuleiro.jogadaValida(i, j, cores[proximo])) {
+                                proximoTemJogada = true;
+                            }
+                        }
+                    }
+                    if (proximoTemJogada) {
+                        jogadorAtual = proximo;
+                    }
                     enviarMensagemATodos("SUA_VEZ");
                 } else if (linha.startsWith("CHAT ")) {
                     // Retransmitir mensagem de chat para ambos (garante que todos veem, inclusive quem enviou)

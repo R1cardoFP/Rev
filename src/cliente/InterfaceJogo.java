@@ -427,12 +427,20 @@ public class InterfaceJogo {
         });
 
         sairBtn.setOnAction(e -> {
-            if (saida != null) {
-                saida.println("SAIR");
+            try {
+                if (saida != null) {
+                    saida.println("SAIR");
+                }
+                if (socket != null) {
+                    socket.close();
+                }
+            } catch (IOException ex) {
+                // Ignorar erros ao fechar
             }
             meuTurno = false;
             pararTemporizador();
-            Platform.runLater(this::mostrarJanelaEspera); // Volta para a tela de espera
+            // Volta para a tela de conexão para procurar novo jogador no mesmo IP
+            Platform.runLater(this::mostrarJanelaConexao);
         });
 
         // Chat: enviar mensagem ao clicar ou pressionar Enter
