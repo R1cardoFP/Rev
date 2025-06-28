@@ -224,14 +224,16 @@ public class InterfaceJogo {
         topo.setSpacing(8);
 
         nomesJogadoresLabel = new Label();
-        nomesJogadoresLabel.setStyle("-fx-font-size: 2.5vw; -fx-font-weight: bold; -fx-text-fill: #7a4c1e;");
-        atualizarCabecalhoJogadores();
-
         contagemPecasLabel = new Label();
-        contagemPecasLabel.setStyle("-fx-font-size: 2vw; -fx-font-weight: bold; -fx-text-fill: #444;");
+
+        // Fontes responsivas usando binding
+        nomesJogadoresLabel.styleProperty().bind(root.widthProperty().multiply(0.025).asString("-fx-font-size: %.1fpx; -fx-font-weight: bold; -fx-text-fill: #7a4c1e;"));
+        contagemPecasLabel.styleProperty().bind(root.widthProperty().multiply(0.018).asString("-fx-font-size: %.1fpx; -fx-font-weight: bold; -fx-text-fill: #444;"));
+
+        atualizarCabecalhoJogadores();
         atualizarContagemPecas();
 
-        temporizadorLabel.setStyle("-fx-font-size: 1.7vw; -fx-text-fill: #8B5C2A;");
+        temporizadorLabel.styleProperty().bind(root.widthProperty().multiply(0.014).asString("-fx-font-size: %.1fpx; -fx-text-fill: #8B5C2A;"));
 
         HBox botoes = new HBox(30);
         botoes.setAlignment(Pos.CENTER);
@@ -241,28 +243,29 @@ public class InterfaceJogo {
         Button regrasBtn = new Button("Regras");
         Button sairBtn = new Button("Sair");
 
-        // Responsividade dos botões
-        confirmarBtn.setMaxWidth(Double.MAX_VALUE);
-        regrasBtn.setMaxWidth(Double.MAX_VALUE);
-        sairBtn.setMaxWidth(Double.MAX_VALUE);
+        // Botões responsivos
+        confirmarBtn.prefWidthProperty().bind(root.widthProperty().multiply(0.28));
+        regrasBtn.prefWidthProperty().bind(root.widthProperty().multiply(0.18));
+        sairBtn.prefWidthProperty().bind(root.widthProperty().multiply(0.13));
+        confirmarBtn.prefHeightProperty().bind(root.heightProperty().multiply(0.06));
+        regrasBtn.prefHeightProperty().bind(root.heightProperty().multiply(0.06));
+        sairBtn.prefHeightProperty().bind(root.heightProperty().multiply(0.06));
 
-        String estiloBtn = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.7vw; -fx-background-radius: 10px;";
-        String estiloBtnHover = "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-weight: bold; -fx-font-size: 1.7vw; -fx-background-radius: 10px;";
+        // Fontes dos botões responsivas
+        confirmarBtn.styleProperty().bind(root.widthProperty().multiply(0.018).asString("-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: %.1fpx; -fx-background-radius: 10px;"));
+        regrasBtn.styleProperty().bind(root.widthProperty().multiply(0.018).asString("-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: %.1fpx; -fx-background-radius: 10px;"));
+        sairBtn.styleProperty().bind(root.widthProperty().multiply(0.018).asString("-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: %.1fpx; -fx-background-radius: 10px;"));
 
-        confirmarBtn.setStyle(estiloBtn);
-        regrasBtn.setStyle(estiloBtn);
-        sairBtn.setStyle(estiloBtn);
-
-        confirmarBtn.setOnMouseEntered(e -> confirmarBtn.setStyle(estiloBtnHover));
-        confirmarBtn.setOnMouseExited(e -> confirmarBtn.setStyle(estiloBtn));
-        regrasBtn.setOnMouseEntered(e -> regrasBtn.setStyle(estiloBtnHover));
-        regrasBtn.setOnMouseExited(e -> regrasBtn.setStyle(estiloBtn));
-        sairBtn.setOnMouseEntered(e -> sairBtn.setStyle(estiloBtnHover));
-        sairBtn.setOnMouseExited(e -> sairBtn.setStyle(estiloBtn));
+        // Efeito hover responsivo
+        confirmarBtn.setOnMouseEntered(e -> confirmarBtn.setStyle(confirmarBtn.getStyle() + "-fx-background-color: #B0B0B0; -fx-text-fill: #222;"));
+        confirmarBtn.setOnMouseExited(e -> confirmarBtn.setStyle(confirmarBtn.getStyle().replace("-fx-background-color: #B0B0B0; -fx-text-fill: #222;", "")));
+        regrasBtn.setOnMouseEntered(e -> regrasBtn.setStyle(regrasBtn.getStyle() + "-fx-background-color: #B0B0B0; -fx-text-fill: #222;"));
+        regrasBtn.setOnMouseExited(e -> regrasBtn.setStyle(regrasBtn.getStyle().replace("-fx-background-color: #B0B0B0; -fx-text-fill: #222;", "")));
+        sairBtn.setOnMouseEntered(e -> sairBtn.setStyle(sairBtn.getStyle() + "-fx-background-color: #B0B0B0; -fx-text-fill: #222;"));
+        sairBtn.setOnMouseExited(e -> sairBtn.setStyle(sairBtn.getStyle().replace("-fx-background-color: #B0B0B0; -fx-text-fill: #222;", "")));
 
         botoes.getChildren().addAll(confirmarBtn, regrasBtn, sairBtn);
 
-        // Responsividade dos botões no HBox
         HBox.setHgrow(confirmarBtn, javafx.scene.layout.Priority.ALWAYS);
         HBox.setHgrow(regrasBtn, javafx.scene.layout.Priority.ALWAYS);
         HBox.setHgrow(sairBtn, javafx.scene.layout.Priority.ALWAYS);
@@ -278,12 +281,8 @@ public class InterfaceJogo {
         stage.setTitle("Jogo Reversi");
         stage.show();
 
-        // Responsividade do tabuleiro
-        grelha.prefWidthProperty().bind(root.widthProperty());
-        grelha.prefHeightProperty().bind(root.heightProperty().subtract(topo.heightProperty()).subtract(40));
-
-        root.widthProperty().addListener((obs, oldVal, newVal) -> atualizarTabuleiro());
-        root.heightProperty().addListener((obs, oldVal, newVal) -> atualizarTabuleiro());
+        // Responsividade do tabuleiro: redesenha apenas quando o tamanho real do grelha muda
+        grelha.layoutBoundsProperty().addListener((obs, oldVal, newVal) -> atualizarTabuleiro());
 
         atualizarTabuleiro();
 
@@ -331,7 +330,6 @@ public class InterfaceJogo {
         });
     }
 
-    // Calcula o tamanho da célula do tabuleiro de acordo com o espaço disponível
     private double getCellSize() {
         double largura = grelha.getWidth();
         double altura = grelha.getHeight();
