@@ -9,11 +9,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class ServidorReversi {
-    private static Tabuleiro tabuleiro = new Tabuleiro();
-    private static ArrayList<PrintWriter> jogadores = new ArrayList<>();
-    private static ArrayList<BufferedReader> entradas = new ArrayList<>();
-    private static ArrayList<String> nomes = new ArrayList<>();
-    private static char[] cores = {'B', 'W'};
+    private static final Tabuleiro tabuleiro = new Tabuleiro();
+    private static final ArrayList<PrintWriter> jogadores = new ArrayList<>();
+    private static final ArrayList<BufferedReader> entradas = new ArrayList<>();
+    private static final ArrayList<String> nomes = new ArrayList<>();
+    private static final char[] cores = {'B', 'W'};
     private static int jogadorAtual = 0;
 
     public static void main(String[] args) {
