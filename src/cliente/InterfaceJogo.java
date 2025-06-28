@@ -57,27 +57,41 @@ public class InterfaceJogo {
     }
 
     private void mostrarJanelaConexao() {
-        VBox caixa = new VBox(10);
-        caixa.setPadding(new Insets(20));
+        VBox caixa = new VBox(14);
+        caixa.setPadding(new Insets(30));
         caixa.setAlignment(Pos.CENTER);
+        caixa.setStyle("-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); -fx-border-radius: 12px; -fx-background-radius: 12px;");
 
         TextField ipField = new TextField("");
         ipField.setPromptText("Endereço IP do servidor");
+        ipField.setStyle("-fx-font-size: 15px; -fx-background-radius: 8px;");
 
         TextField portaField = new TextField("");
         portaField.setPromptText("Porta");
+        portaField.setStyle("-fx-font-size: 15px; -fx-background-radius: 8px;");
 
         TextField nomeJogadorField = new TextField();
         nomeJogadorField.setPromptText("Nome do jogador");
+        nomeJogadorField.setStyle("-fx-font-size: 15px; -fx-background-radius: 8px;");
 
         Button conectarBtn = new Button("Conectar");
+        conectarBtn.setStyle(
+            "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-size: 17px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-pref-width: 160px; -fx-pref-height: 40px;"
+        );
+        conectarBtn.setOnMouseEntered(e -> conectarBtn.setStyle(
+            "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-size: 17px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-pref-width: 160px; -fx-pref-height: 40px;"
+        ));
+        conectarBtn.setOnMouseExited(e -> conectarBtn.setStyle(
+            "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-size: 17px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-pref-width: 160px; -fx-pref-height: 40px;"
+        ));
 
         Label erroLabel = new Label();
         erroLabel.setTextFill(Color.RED);
+        erroLabel.setStyle("-fx-font-size: 13px;");
 
         caixa.getChildren().addAll(ipField, portaField, nomeJogadorField, conectarBtn, erroLabel);
 
-        Scene cenaConexao = new Scene(caixa, 300, 220);
+        Scene cenaConexao = new Scene(caixa, 340, 270);
         stage.setScene(cenaConexao);
         stage.setTitle("Conectar ao Servidor");
         stage.show();
@@ -107,16 +121,17 @@ public class InterfaceJogo {
     }
 
     private void mostrarJanelaEspera() {
-        VBox caixa = new VBox(15);
-        caixa.setPadding(new Insets(30));
+        VBox caixa = new VBox(18);
+        caixa.setPadding(new Insets(40));
         caixa.setAlignment(Pos.CENTER);
+        caixa.setStyle("-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); -fx-border-radius: 12px; -fx-background-radius: 12px;");
 
         Label esperaLabel = new Label("A aguardar outro jogador para iniciar o jogo...");
-        esperaLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        esperaLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A;");
 
         caixa.getChildren().add(esperaLabel);
 
-        Scene cenaEspera = new Scene(caixa, 350, 150);
+        Scene cenaEspera = new Scene(caixa, 400, 180);
         Platform.runLater(() -> {
             stage.setScene(cenaEspera);
             stage.setTitle("Esperar pelo outro jogador");
@@ -130,7 +145,7 @@ public class InterfaceJogo {
             entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             saida = new PrintWriter(socket.getOutputStream(), true);
 
-            // Enviar o nome do jogador ao servidor (se o protocolo aceitar)
+            // Enviar o nome do jogador ao servidor
             saida.println(nomeJogador);
 
             String cor = entrada.readLine();
@@ -139,13 +154,6 @@ public class InterfaceJogo {
             }
             minhaCor = cor.charAt(0);
 
-            // Receber nome do adversário, se o protocolo enviar (opcional)
-            String possivelNomeAdv = entrada.readLine();
-            if (possivelNomeAdv != null && !possivelNomeAdv.isEmpty()) {
-                nomeJogadorAdversario = possivelNomeAdv;
-            }
-
-            // Mostrar janela de espera depois da conexão e cor atribuída
             mostrarJanelaEspera();
 
             // Thread para receber mensagens do servidor
@@ -177,7 +185,6 @@ public class InterfaceJogo {
                             iniciarTemporizador();
                             Platform.runLater(this::atualizarTabuleiro);
                         } else if (msg.startsWith("NOME_ADVERSARIO ")) {
-                            // Protocolo opcional: servidor envia nome do adversário
                             nomeJogadorAdversario = msg.substring("NOME_ADVERSARIO ".length());
                             Platform.runLater(this::atualizarCabecalhoJogadores);
                         }
@@ -209,26 +216,27 @@ public class InterfaceJogo {
 
     private void mostrarJanelaJogo() {
         BorderPane root = new BorderPane();
+        root.setStyle("-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff);");
 
         // Topo: nomes, contagem de peças, temporizador e botões
         VBox topo = new VBox();
         topo.setAlignment(Pos.CENTER);
-        topo.setSpacing(8);
+        topo.setSpacing(10);
 
         // Nomes dos jogadores
         nomesJogadoresLabel = new Label();
-        nomesJogadoresLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+        nomesJogadoresLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A;");
         atualizarCabecalhoJogadores();
 
         // Contagem de peças
         contagemPecasLabel = new Label();
-        contagemPecasLabel.setStyle("-fx-font-size: 14px;");
+        contagemPecasLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #333;");
         atualizarContagemPecas();
 
         // Temporizador
-        temporizadorLabel.setStyle("-fx-font-size: 13px;");
+        temporizadorLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #8B5C2A;");
 
-        // Botões grandes
+        // Botões grandes e bonitos
         HBox botoes = new HBox(30);
         botoes.setAlignment(Pos.CENTER);
         botoes.setPadding(new Insets(10, 0, 10, 0));
@@ -237,20 +245,29 @@ public class InterfaceJogo {
         Button regrasBtn = new Button("Regras");
         Button sairBtn = new Button("Sair");
 
-        String estiloCastanho = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-pref-width: 180px; -fx-pref-height: 40px;";
+        String estiloBtn = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px; -fx-pref-width: 180px; -fx-pref-height: 42px;";
+        String estiloBtnHover = "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px; -fx-pref-width: 180px; -fx-pref-height: 42px;";
 
-        confirmarBtn.setStyle(estiloCastanho);
-        regrasBtn.setStyle(estiloCastanho);
-        sairBtn.setStyle(estiloCastanho);
+        confirmarBtn.setStyle(estiloBtn);
+        regrasBtn.setStyle(estiloBtn);
+        sairBtn.setStyle(estiloBtn);
+
+        confirmarBtn.setOnMouseEntered(e -> confirmarBtn.setStyle(estiloBtnHover));
+        confirmarBtn.setOnMouseExited(e -> confirmarBtn.setStyle(estiloBtn));
+        regrasBtn.setOnMouseEntered(e -> regrasBtn.setStyle(estiloBtnHover));
+        regrasBtn.setOnMouseExited(e -> regrasBtn.setStyle(estiloBtn));
+        sairBtn.setOnMouseEntered(e -> sairBtn.setStyle(estiloBtnHover));
+        sairBtn.setOnMouseExited(e -> sairBtn.setStyle(estiloBtn));
 
         botoes.getChildren().addAll(confirmarBtn, regrasBtn, sairBtn);
 
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
+        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
         root.setCenter(grelha);
 
-        Scene cenaJogo = new Scene(root, 500, 570);
+        Scene cenaJogo = new Scene(root, 520, 600);
         stage.setScene(cenaJogo);
         stage.setTitle("Jogo Reversi");
         stage.show();
@@ -267,11 +284,7 @@ public class InterfaceJogo {
                 jogadaColuna = coluna;
                 atualizarTabuleiro();
             } else {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Jogada inválida");
-                alert.setHeaderText(null);
-                alert.setContentText("Essa jogada não é válida. Tente outra posição.");
-                alert.showAndWait();
+                mostrarAlertaBonito("Jogada inválida", "Essa jogada não é válida. Tente outra posição.", Alert.AlertType.WARNING);
             }
         });
 
@@ -286,26 +299,20 @@ public class InterfaceJogo {
                 jogadaColuna = -1;
                 atualizarTabuleiro();
             } else {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Selecione uma jogada");
-                alert.setHeaderText(null);
-                alert.setContentText("Selecione uma posição válida no tabuleiro antes de confirmar.");
-                alert.showAndWait();
+                mostrarAlertaBonito("Selecione uma jogada", "Selecione uma posição válida no tabuleiro antes de confirmar.", Alert.AlertType.INFORMATION);
             }
         });
 
         // Mostrar regras
         regrasBtn.setOnAction(e -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Regras do Reversi");
-            alert.setHeaderText("Como jogar Reversi");
-            alert.setContentText(
+            mostrarAlertaBonito(
+                "Regras do Reversi",
                 "1. O objetivo é ter mais peças da sua cor no final do jogo.\n" +
                 "2. Só pode jogar onde capturar pelo menos uma peça adversária.\n" +
                 "3. As peças capturadas mudam para a sua cor.\n" +
-                "4. O jogo termina quando não há mais jogadas possíveis."
+                "4. O jogo termina quando não há mais jogadas possíveis.",
+                Alert.AlertType.INFORMATION
             );
-            alert.showAndWait();
         });
 
         // Sair do jogo
@@ -314,20 +321,19 @@ public class InterfaceJogo {
         });
     }
 
-    private void atualizarCabecalhoJogadores() {
-        // Mostra nomes e cor de cada jogador
-        String corLocal = minhaCor == 'B' ? "Pretas" : "Brancas";
-        String corAdv = minhaCor == 'B' ? "Brancas" : "Pretas";
-        nomesJogadoresLabel.setText(
-            nomeJogadorLocal + " (" + corLocal + ")  vs  " +
-            nomeJogadorAdversario + " (" + corAdv + ")"
+    private void mostrarAlertaBonito(String titulo, String mensagem, Alert.AlertType tipo) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensagem);
+        Stage alertStage = (Stage) alert.getDialogPane().getScene().getWindow();
+        alert.getDialogPane().setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); " +
+            "-fx-font-size: 15px; -fx-font-family: 'Segoe UI', sans-serif; " +
+            "-fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 10px;"
         );
-    }
-
-    private void atualizarContagemPecas() {
-        int pretas = tabuleiro.contarPecas('B');
-        int brancas = tabuleiro.contarPecas('W');
-        contagemPecasLabel.setText("Pretas: " + pretas + "   |   Brancas: " + brancas);
+        alertStage.getScene().getRoot().setStyle("-fx-background-radius: 10px;");
+        alert.showAndWait();
     }
 
     private void atualizarTabuleiro() {
@@ -335,19 +341,24 @@ public class InterfaceJogo {
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(50, 50);
-                // Alterna entre castanho e preto
+                // Alterna entre cinzento e castanho
                 if ((linha + coluna) % 2 == 0) {
-                    r.setFill(Color.web("#8B5C2A")); // castanho
+                    r.setFill(Color.web("#B0B0B0")); // cinzento claro
                 } else {
-                    r.setFill(Color.BLACK);
+                    r.setFill(Color.web("#8B5C2A")); // castanho
                 }
-                r.setStroke(Color.BLACK);
+                r.setArcWidth(12);
+                r.setArcHeight(12);
+                r.setStroke(Color.web("#333"));
+                r.setStrokeWidth(1.2);
                 grelha.add(r, coluna, linha);
 
                 char peca = tabuleiro.getPeca(linha, coluna);
                 if (peca != '-') {
                     Circle c = new Circle(20);
                     c.setFill(peca == 'B' ? Color.BLACK : Color.WHITE);
+                    c.setStroke(Color.web("#555"));
+                    c.setStrokeWidth(2);
                     grelha.add(c, coluna, linha);
                 } else if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
                     if (linha == jogadaLinha && coluna == jogadaColuna) {
@@ -355,8 +366,8 @@ public class InterfaceJogo {
                         marcador.setFill(Color.web("#FFD70080")); // amarelo transparente
                         grelha.add(marcador, coluna, linha);
                     } else {
-                        Circle marcador = new Circle(5);
-                        marcador.setFill(Color.YELLOW);
+                        Circle marcador = new Circle(7);
+                        marcador.setFill(Color.web("#FFD700B0")); // amarelo mais visível
                         grelha.add(marcador, coluna, linha);
                     }
                 }
@@ -377,11 +388,7 @@ public class InterfaceJogo {
                 pararTemporizador();
                 meuTurno = false;
                 Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle("Tempo esgotado");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Tempo esgotado! A sua vez foi passada.");
-                    alert.showAndWait();
+                    mostrarAlertaBonito("Tempo esgotado", "Tempo esgotado! A sua vez foi passada.", Alert.AlertType.WARNING);
                 });
                 saida.println("TEMPO_ESGOTADO");
             }

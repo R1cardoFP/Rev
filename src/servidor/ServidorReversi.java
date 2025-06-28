@@ -17,7 +17,7 @@ public class ServidorReversi {
     private static int jogadorAtual = 0;
 
     public static void main(String[] args) {
-        String ipManual = "192.168.1.13"; // <- Define aqui o IP
+        String ipManual = "192.168.1.138"; // <- Define aqui o IP
         int porta = 12345;
 
         try (ServerSocket serverSocket = new ServerSocket(porta, 0, InetAddress.getByName(ipManual))) {
@@ -38,13 +38,12 @@ public class ServidorReversi {
                 nomes.add(nome);
 
                 out.println(cores[jogadores.size() - 1]); // Envia cor ao jogador
-
-                // Se já há dois jogadores, envia o nome do adversário para cada um
-                if (jogadores.size() == 2) {
-                    jogadores.get(0).println(nomes.get(1));
-                    jogadores.get(1).println(nomes.get(0));
-                }
+                // Não enviar já o nome do adversário!
             }
+
+            // Agora que ambos estão ligados, enviar o nome do adversário para cada um
+            jogadores.get(0).println("NOME_ADVERSARIO " + nomes.get(1));
+            jogadores.get(1).println("NOME_ADVERSARIO " + nomes.get(0));
 
             enviarMensagemATodos("COMEÇAR");
             tabuleiro.inicializar();
