@@ -69,41 +69,58 @@ public class InterfaceJogo {
     }
 
     private void mostrarJanelaConexao() {
-        VBox caixa = new VBox(14);
-        caixa.setPadding(new Insets(30));
+        VBox caixa = new VBox(18);
+        caixa.setPadding(new Insets(36, 36, 36, 36));
         caixa.setAlignment(Pos.CENTER);
-        caixa.setStyle("-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); -fx-border-radius: 12px; -fx-background-radius: 12px;");
+        caixa.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);" +
+            "-fx-border-radius: 18px; -fx-background-radius: 18px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
+        );
+
+        Label titulo = new Label("Conectar ao Servidor Reversi");
+        titulo.setStyle("-fx-font-size: 23px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A; -fx-padding: 0 0 10 0;");
 
         TextField ipField = new TextField("");
         ipField.setPromptText("Endereço IP do servidor");
-        ipField.setStyle("-fx-font-size: 15px; -fx-background-radius: 8px;");
+        ipField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12;");
 
         TextField portaField = new TextField("");
         portaField.setPromptText("Porta");
-        portaField.setStyle("-fx-font-size: 15px; -fx-background-radius: 8px;");
+        portaField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12;");
 
         TextField nomeJogadorField = new TextField();
         nomeJogadorField.setPromptText("Nome do jogador");
-        nomeJogadorField.setStyle("-fx-font-size: 15px; -fx-background-radius: 8px;");
+        nomeJogadorField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12;");
 
         Button conectarBtn = new Button("Conectar");
         conectarBtn.setStyle(
-            "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-size: 17px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-pref-width: 160px; -fx-pref-height: 40px;"
+            "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; " +
+            "-fx-background-radius: 12px; -fx-pref-width: 180px; -fx-pref-height: 44px; -fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
         );
         conectarBtn.setOnMouseEntered(e -> conectarBtn.setStyle(
-            "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-size: 17px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-pref-width: 160px; -fx-pref-height: 40px;"
+            "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-size: 18px; -fx-font-weight: bold; " +
+            "-fx-background-radius: 12px; -fx-pref-width: 180px; -fx-pref-height: 44px; -fx-effect: dropshadow(gaussian, #8B5C2A, 2, 0, 0, 1);"
         ));
         conectarBtn.setOnMouseExited(e -> conectarBtn.setStyle(
-            "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-size: 17px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-pref-width: 160px; -fx-pref-height: 40px;"
+            "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; " +
+            "-fx-background-radius: 12px; -fx-pref-width: 180px; -fx-pref-height: 44px; -fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
         ));
 
         Label erroLabel = new Label();
-        erroLabel.setTextFill(Color.RED);
-        erroLabel.setStyle("-fx-font-size: 13px;");
+        erroLabel.setTextFill(Color.web("#c0392b"));
+        erroLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
-        caixa.getChildren().addAll(ipField, portaField, nomeJogadorField, conectarBtn, erroLabel);
+        caixa.getChildren().addAll(
+            titulo,
+            ipField,
+            portaField,
+            nomeJogadorField,
+            conectarBtn,
+            erroLabel
+        );
 
-        Scene cenaConexao = new Scene(caixa, 340, 270);
+        Scene cenaConexao = new Scene(caixa, 400, 350);
         stage.setScene(cenaConexao);
         stage.setTitle("Conectar ao Servidor");
         stage.show();
@@ -413,10 +430,8 @@ public class InterfaceJogo {
         if (!texto.isEmpty()) {
             String mensagem = nomeJogadorLocal + ": " + texto;
             saida.println("CHAT " + mensagem);
-            adicionarMensagemChat(mensagem); // Mostra imediatamente no próprio chat
             chatInput.clear();
-            // Não mostrar de novo quando receber do servidor
-            // O controlo é feito no listener acima
+            // Não adicionar localmente, só mostrar quando vier do servidor
         }
     }
 
