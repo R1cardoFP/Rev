@@ -58,7 +58,7 @@ public class ServidorReversi {
                 if (linha == null) break;
 
                 if (linha.startsWith("JOGADA")) {
-                    // Verifica se é o jogador da vez
+                    // Confirma se é o jogador da vez
                     if (entradaAtual != entradas.get(jogadorAtual)) {
                         atual.println("NAO_E_O_SEU_TURNO");
                         continue;
@@ -72,6 +72,7 @@ public class ServidorReversi {
                     if (tabuleiro.jogadaValida(x, y, cor)) {
                         tabuleiro.jogar(x, y, cor);
                         enviarJogadaParaJogadores(x, y, cor);
+                        atual.println("JOGADA_CONFIRMADA"); // Confirmação para o cliente
 
                         if (fimDeJogo()) {
                             enviarMensagemATodos("FIM");
