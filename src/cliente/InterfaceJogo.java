@@ -338,18 +338,19 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
+        // Configuração da grelha (tabuleiro)
         grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
         grelha.setMinSize(400, 400);
         grelha.setMaxSize(400, 400);
         grelha.setPrefSize(400, 400);
 
+        // Contêiner para o tabuleiro, centrado
         HBox tabuleiroContainer = new HBox();
         tabuleiroContainer.setAlignment(Pos.CENTER);
         tabuleiroContainer.getChildren().add(grelha);
         tabuleiroContainer.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
         root.setCenter(tabuleiroContainer);
-        VBox centro = new VBox(grelha);
-        centro.setAlignment(Pos.CENTER);
+
 
         // Chat ao lado do tabuleiro
         VBox chatBox = new VBox(8);
@@ -511,19 +512,11 @@ public class InterfaceJogo {
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
+
                 if ((linha + coluna) % 2 == 0) {
                     r.setFill(Color.web("#B0B0B0")); // Cor padrão para casas claras
                 } else {
                     r.setFill(Color.web("#8B5C2A")); // Cor padrão para casas escuras
-                }
-
-                // Destacar casas válidas para jogada
-                if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
-                    if (linha == jogadaLinha && coluna == jogadaColuna) {
-                        r.setFill(Color.web("#FFA50080")); // Cor laranja para casa selecionada
-                    } else {
-                        r.setFill(Color.web("#FF000080")); // Cor vermelha para casas válidas
-                    }
                 }
                 r.setArcWidth(cellSize * 0.24);
                 r.setArcHeight(cellSize * 0.24);
