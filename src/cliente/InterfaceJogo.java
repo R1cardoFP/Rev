@@ -524,6 +524,8 @@ public class InterfaceJogo {
                     c.setFill(peca == 'B' ? Color.BLACK : Color.WHITE);
                     c.setStroke(Color.web("#555"));
                     c.setStrokeWidth(cellSize * 0.09);
+                    // Centralizar a peça na célula
+                    GridPane.setMargin(c, new Insets((cellSize - c.getRadius() * 2) / 2));
                     grelha.add(c, coluna, linha);
                 } else if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
                     // Quadrado pequeno, centrado na célula
@@ -543,6 +545,7 @@ public class InterfaceJogo {
                         fadePeca.setOpacity(0.4); // Fade
                         fadePeca.setStroke(Color.web("#555"));
                         fadePeca.setStrokeWidth(cellSize * 0.09);
+                        GridPane.setMargin(fadePeca, new Insets((cellSize - fadePeca.getRadius() * 2) / 2));
                         grelha.add(fadePeca, coluna, linha);
                     }
                 }
