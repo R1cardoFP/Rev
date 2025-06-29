@@ -583,7 +583,7 @@ public class InterfaceJogo {
     private void iniciarTemporizador() {
         pararTemporizador();
         tempoRestante = 30;
-        Platform.runLater(() -> temporizadorLabel.setText("Tempo restante: " + tempoRestante);
+        Platform.runLater(() -> temporizadorLabel.setText("Tempo restante: " + tempoRestante));
 
         temporizador = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             tempoRestante--;
