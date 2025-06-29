@@ -38,7 +38,6 @@ public class ServidorReversi {
                 nomes.add(nome);
 
                 out.println(cores[jogadores.size() - 1]); // Envia cor ao jogador
-                // Não enviar já o nome do adversário!
             }
 
             // Agora que ambos estão ligados, enviar o nome do adversário para cada um
@@ -59,12 +58,17 @@ public class ServidorReversi {
                 if (linha == null) break;
 
                 if (linha.startsWith("JOGADA")) {
+                    // Verifica se é o jogador da vez
+                    if (entradaAtual != entradas.get(jogadorAtual)) {
+                        atual.println("NAO_E_O_SEU_TURNO");
+                        continue;
+                    }
+
                     String[] partes = linha.split(" ");
                     int x = Integer.parseInt(partes[1]);
                     int y = Integer.parseInt(partes[2]);
                     char cor = cores[jogadorAtual];
 
-                    // Só processa a jogada se for o turno correto!
                     if (tabuleiro.jogadaValida(x, y, cor)) {
                         tabuleiro.jogar(x, y, cor);
                         enviarJogadaParaJogadores(x, y, cor);
@@ -73,17 +77,14 @@ public class ServidorReversi {
                             enviarMensagemATodos("FIM");
                             break;
                         } else {
-                            // Marca que este jogador deve pular o próximo turno
                             jogadorPulou[jogadorAtual] = true;
 
-                            // Procura o próximo jogador que não deve pular o turno
                             int tentativas = 0;
                             do {
                                 jogadorAtual = (jogadorAtual + 1) % 2;
                                 tentativas++;
                             } while (jogadorPulou[jogadorAtual] && tentativas < 2);
 
-                            // Se ambos devem pular, reseta os flags e segue normalmente
                             if (jogadorPulou[0] && jogadorPulou[1]) {
                                 jogadorPulou[0] = false;
                                 jogadorPulou[1] = false;
@@ -91,32 +92,33 @@ public class ServidorReversi {
 
                             enviarMensagemATodos("SUA_VEZ");
                         }
+                    } else {
+                        atual.println("JOGADA_INVALIDA");
                     }
+
                 } else if (linha.equals("TEMPO_ESGOTADO")) {
-                    // Marca que este jogador deve pular o próximo turno
                     jogadorPulou[jogadorAtual] = true;
 
-                    // Procura o próximo jogador que não deve pular o turno
                     int tentativas = 0;
                     do {
                         jogadorAtual = (jogadorAtual + 1) % 2;
                         tentativas++;
                     } while (jogadorPulou[jogadorAtual] && tentativas < 2);
 
-                    // Se ambos devem pular, reseta os flags e segue normalmente
                     if (jogadorPulou[0] && jogadorPulou[1]) {
                         jogadorPulou[0] = false;
                         jogadorPulou[1] = false;
                     }
 
                     enviarMensagemATodos("SUA_VEZ");
+
                 } else if (linha.startsWith("CHAT ")) {
-                    // Retransmitir mensagem de chat para ambos (garante que todos veem, inclusive quem enviou)
                     for (PrintWriter p : jogadores) {
                         p.println(linha);
                     }
+
                 } else if (linha.startsWith("SAIR")) {
-                    System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo."); // Mensagem no terminal
+                    System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
                     jogadores.get(jogadorAtual).println("SAIU");
                     jogadores.remove(jogadorAtual);
                     entradas.remove(jogadorAtual);
@@ -129,7 +131,6 @@ public class ServidorReversi {
                     if (jogadores.size() > 0) {
                         jogadorAtual = jogadorAtual % jogadores.size();
                     }
-                    continue;
                 }
             }
 
@@ -162,7 +163,6 @@ public class ServidorReversi {
         return true;
     }
 
-    // Adicione este método auxiliar:
     private static boolean jogadorTemJogada(int jogador) {
         char cor = cores[jogador];
         for (int i = 0; i < 8; i++)
