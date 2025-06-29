@@ -219,11 +219,13 @@ public class InterfaceJogo {
                                 Platform.runLater(this::mostrarJanelaJogo);
                             } else if (msg.startsWith("JOGADA")) {
                                 String[] partes = msg.split(" ");
-                                int linha = Integer.parseInt(partes[1]);
-                                int coluna = Integer.parseInt(partes[2]);
-                                char corJogada = partes[3].charAt(0);
-                                tabuleiro.jogar(linha, coluna, corJogada);
-                                Platform.runLater(this::atualizarTabuleiro);
+                                if (partes.length >= 4) { // Proteção contra mensagens mal formatadas
+                                    int linha = Integer.parseInt(partes[1]);
+                                    int coluna = Integer.parseInt(partes[2]);
+                                    char corJogada = partes[3].charAt(0);
+                                    tabuleiro.jogar(linha, coluna, corJogada);
+                                    Platform.runLater(this::atualizarTabuleiro);
+                                }
                             } else if (msg.equals("JOGADA_CONFIRMADA")) {
                                 // Jogada confirmada pelo servidor, nada a fazer (pode usar para feedback)
                             } else if (msg.equals("JOGADA_INVALIDA")) {
@@ -246,7 +248,7 @@ public class InterfaceJogo {
                                 });
                             } else if (msg.equals("SUA_VEZ")) {
                                 meuTurno = true;
-                                podeMostrarJogadas = true;
+                                podeMostrarJogadas = true; // Permite mostrar hitbox novamente no novo turno
                                 jogadaLinha = -1;
                                 jogadaColuna = -1;
                                 iniciarTemporizador();

@@ -48,90 +48,80 @@ public class ServidorReversi {
             tabuleiro.inicializar();
             jogadores.get(jogadorAtual).println("SUA_VEZ");
 
-            boolean[] jogadorPulou = new boolean[2]; // Para controlar se o jogador deve pular o turno
-
             while (true) {
-                PrintWriter atual = jogadores.get(jogadorAtual);
-                BufferedReader entradaAtual = entradas.get(jogadorAtual);
+                // Espera mensagem de qualquer jogador
+                boolean mensagemProcessada = false;
+                while (!mensagemProcessada) {
+                    for (int i = 0; i < entradas.size(); i++) {
+                        BufferedReader entrada = entradas.get(i);
+                        if (entrada.ready()) {
+                            String linha = entrada.readLine();
+                            if (linha == null) continue;
 
-                String linha = entradaAtual.readLine();
-                if (linha == null) break;
-
-                if (linha.startsWith("JOGADA")) {
-                    // Confirma se é o jogador da vez
-                    if (entradaAtual != entradas.get(jogadorAtual)) {
-                        atual.println("NAO_E_O_SEU_TURNO");
-                        continue;
-                    }
-
-                    String[] partes = linha.split(" ");
-                    int x = Integer.parseInt(partes[1]);
-                    int y = Integer.parseInt(partes[2]);
-                    char cor = cores[jogadorAtual];
-
-                    if (tabuleiro.jogadaValida(x, y, cor)) {
-                        tabuleiro.jogar(x, y, cor);
-                        enviarJogadaParaJogadores(x, y, cor);
-                        atual.println("JOGADA_CONFIRMADA"); // Confirmação para o cliente
-
-                        if (fimDeJogo()) {
-                            enviarMensagemATodos("FIM");
-                            break;
-                        } else {
-                            jogadorPulou[jogadorAtual] = true;
-
-                            int tentativas = 0;
-                            do {
-                                jogadorAtual = (jogadorAtual + 1) % 2;
-                                tentativas++;
-                            } while (jogadorPulou[jogadorAtual] && tentativas < 2);
-
-                            if (jogadorPulou[0] && jogadorPulou[1]) {
-                                jogadorPulou[0] = false;
-                                jogadorPulou[1] = false;
+                            if (i != jogadorAtual) {
+                                // Não é o turno deste jogador
+                                jogadores.get(i).println("NAO_E_O_SEU_TURNO");
+                                continue;
                             }
 
-                            enviarMensagemATodos("SUA_VEZ");
+                            PrintWriter atual = jogadores.get(jogadorAtual);
+
+                            if (linha.startsWith("JOGADA")) {
+                                String[] partes = linha.split(" ");
+                                int x = Integer.parseInt(partes[1]);
+                                int y = Integer.parseInt(partes[2]);
+                                char cor = cores[jogadorAtual];
+
+                                if (tabuleiro.jogadaValida(x, y, cor)) {
+                                    tabuleiro.jogar(x, y, cor);
+                                    enviarJogadaParaJogadores(x, y, cor);
+                                    atual.println("JOGADA_CONFIRMADA");
+
+                                    if (fimDeJogo()) {
+                                        enviarMensagemATodos("FIM");
+                                        return;
+                                    } else {
+                                        jogadorAtual = (jogadorAtual + 1) % 2;
+                                        jogadores.get(jogadorAtual).println("SUA_VEZ");
+                                    }
+                                } else {
+                                    atual.println("JOGADA_INVALIDA");
+                                }
+                                mensagemProcessada = true;
+                                break;
+
+                            } else if (linha.equals("TEMPO_ESGOTADO")) {
+                                jogadorAtual = (jogadorAtual + 1) % 2;
+                                jogadores.get(jogadorAtual).println("SUA_VEZ");
+                                mensagemProcessada = true;
+                                break;
+
+                            } else if (linha.startsWith("CHAT ")) {
+                                for (PrintWriter p : jogadores) {
+                                    p.println(linha);
+                                }
+
+                            } else if (linha.startsWith("SAIR")) {
+                                System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
+                                jogadores.get(jogadorAtual).println("SAIU");
+                                jogadores.remove(jogadorAtual);
+                                entradas.remove(jogadorAtual);
+                                nomes.remove(jogadorAtual);
+
+                                if (jogadores.size() == 1) {
+                                    jogadores.get(0).println("ESPERANDO");
+                                }
+
+                                if (jogadores.size() > 0) {
+                                    jogadorAtual = jogadorAtual % jogadores.size();
+                                }
+                                mensagemProcessada = true;
+                                break;
+                            }
                         }
-                    } else {
-                        atual.println("JOGADA_INVALIDA");
                     }
-
-                } else if (linha.equals("TEMPO_ESGOTADO")) {
-                    jogadorPulou[jogadorAtual] = true;
-
-                    int tentativas = 0;
-                    do {
-                        jogadorAtual = (jogadorAtual + 1) % 2;
-                        tentativas++;
-                    } while (jogadorPulou[jogadorAtual] && tentativas < 2);
-
-                    if (jogadorPulou[0] && jogadorPulou[1]) {
-                        jogadorPulou[0] = false;
-                        jogadorPulou[1] = false;
-                    }
-
-                    enviarMensagemATodos("SUA_VEZ");
-
-                } else if (linha.startsWith("CHAT ")) {
-                    for (PrintWriter p : jogadores) {
-                        p.println(linha);
-                    }
-
-                } else if (linha.startsWith("SAIR")) {
-                    System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
-                    jogadores.get(jogadorAtual).println("SAIU");
-                    jogadores.remove(jogadorAtual);
-                    entradas.remove(jogadorAtual);
-                    nomes.remove(jogadorAtual);
-
-                    if (jogadores.size() == 1) {
-                        jogadores.get(0).println("ESPERANDO");
-                    }
-
-                    if (jogadores.size() > 0) {
-                        jogadorAtual = jogadorAtual % jogadores.size();
-                    }
+                    // Pequena pausa para evitar busy-wait
+                    try { Thread.sleep(20); } catch (InterruptedException e) { }
                 }
             }
 
