@@ -512,9 +512,18 @@ public class InterfaceJogo {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
                 if ((linha + coluna) % 2 == 0) {
-                    r.setFill(Color.web("#B0B0B0"));
+                    r.setFill(Color.web("#B0B0B0")); // Cor padrão para casas claras
                 } else {
-                    r.setFill(Color.web("#8B5C2A"));
+                    r.setFill(Color.web("#8B5C2A")); // Cor padrão para casas escuras
+                }
+
+                // Destacar casas válidas para jogada
+                if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
+                    if (linha == jogadaLinha && coluna == jogadaColuna) {
+                        r.setFill(Color.web("#FFA50080")); // Cor laranja para casa selecionada
+                    } else {
+                        r.setFill(Color.web("#FF000080")); // Cor vermelha para casas válidas
+                    }
                 }
                 r.setArcWidth(cellSize * 0.24);
                 r.setArcHeight(cellSize * 0.24);
