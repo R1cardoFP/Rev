@@ -258,15 +258,12 @@ public class InterfaceJogo {
 
                 // Enviar o nome do jogador ao servidor
                 saida.println(nomeJogador);
-
                 String cor = entrada.readLine();
                 if (cor == null || cor.isEmpty()) {
                     throw new IOException("Não foi possível obter a cor do servidor.");
                 }
                 minhaCor = cor.charAt(0);
-
                 Platform.runLater(this::mostrarJanelaEspera);
-
                 Thread leituraThread = new Thread(() -> {
                     try {
                         String msg;
@@ -312,6 +309,10 @@ public class InterfaceJogo {
                                         adicionarMensagemChat(chatMsg);
                                     }
                                 });
+                            } else if (msg.equals("SAIU")) {
+                                // O outro jogador saiu, mostrar tela de espera personalizada
+                                Platform.runLater(() -> mostrarJanelaAguardandoNovoJogador());
+                                break;
                             }
                         }
                     } catch (IOException e) {
@@ -328,7 +329,6 @@ public class InterfaceJogo {
                 });
                 leituraThread.setDaemon(true);
                 leituraThread.start();
-
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -934,5 +934,31 @@ public class InterfaceJogo {
         entrada = null;
         saida = null;
         socket = null;
+    }
+
+    // Nova tela: aguarda novo jogador após saída do adversário
+    private void mostrarJanelaAguardandoNovoJogador() {
+        VBox caixa = new VBox(22);
+        caixa.setPadding(new Insets(48, 36, 48, 36));
+        caixa.setAlignment(Pos.CENTER);
+        caixa.setStyle(
+            "-fx-background-color: #e9e4d9;" +
+            "-fx-border-radius: 18px; -fx-background-radius: 18px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
+        );
+        Label titulo = new Label("O outro jogador saiu!");
+        titulo.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A; -fx-padding: 0 0 10 0;");
+        Label info = new Label("Aguardando novo jogador conectar...\nAssim que outro jogador entrar, o jogo reiniciará.");
+        info.setStyle("-fx-font-size: 16px; -fx-text-fill: #444; -fx-padding: 0 0 10 0; -fx-alignment: center;");
+        Label loading = new Label("⏳");
+        loading.setStyle("-fx-font-size: 32px; -fx-padding: 10 0 0 0;");
+        caixa.getChildren().addAll(titulo, info, loading);
+        Scene cenaEspera = new Scene(caixa, 400, 220);
+        Platform.runLater(() -> {
+            fecharSocket(); // Garante que a conexão antiga foi fechada
+            stage.setScene(cenaEspera);
+            stage.setTitle("Aguardando Novo Jogador");
+            stage.show();
+        });
     }
 }
