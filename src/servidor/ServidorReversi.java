@@ -6,6 +6,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
 public class ServidorReversi {
@@ -62,67 +63,95 @@ public class ServidorReversi {
                 while (jogoAtivo) {
                     boolean mensagemProcessada = false;
 
+                    // --- INÍCIO DO CONTROLE DE TEMPO ---
+                    int tempoTurno = 30; // segundos
+                    long inicioTurno = System.currentTimeMillis();
+                    try {
+                        sockets.get(jogadorAtual).setSoTimeout(tempoTurno * 1000);
+                    } catch (IOException ex) { }
+                    jogadores.get(jogadorAtual).println("TEMPO " + tempoTurno);
+
                     while (!mensagemProcessada) {
                         for (int i = 0; i < entradas.size(); i++) {
                             if (i != jogadorAtual) continue;
 
                             BufferedReader entrada = entradas.get(i);
                             try {
-                                if (entrada.ready()) {
-                                    String linha = entrada.readLine();
-                                    if (linha == null) {
-                                        // Cliente desconectou
-                                        removerJogador(i);
-                                        jogoAtivo = false;
-                                        break;
-                                    }
-
-                                    PrintWriter atual = jogadores.get(jogadorAtual);
-
-                                    if (linha.startsWith("JOGADA")) {
-                                        String[] partes = linha.split(" ");
-                                        int x = Integer.parseInt(partes[1]);
-                                        int y = Integer.parseInt(partes[2]);
-                                        char cor = cores[jogadorAtual];
-
-                                        if (tabuleiro.jogadaValida(x, y, cor)) {
-                                            tabuleiro.jogar(x, y, cor);
-                                            enviarJogadaParaJogadores(x, y, cor);
-                                            atual.println("JOGADA_CONFIRMADA");
-
-                                            if (fimDeJogo()) {
-                                                enviarMensagemATodos("FIM");
-                                                jogoAtivo = false;
-                                                break;
-                                            } else {
-                                                jogadorAtual = (jogadorAtual + 1) % 2;
-                                                jogadores.get(jogadorAtual).println("SUA_VEZ");
-                                            }
-                                        } else {
-                                            atual.println("JOGADA_INVALIDA");
+                                String linha = null;
+                                try {
+                                    if (entrada.ready()) {
+                                        linha = entrada.readLine();
+                                    } else {
+                                        // Espera até o tempo acabar ou receber mensagem
+                                        long tempoRestante = tempoTurno * 1000 - (System.currentTimeMillis() - inicioTurno);
+                                        if (tempoRestante > 0) {
+                                            sockets.get(jogadorAtual).setSoTimeout((int) tempoRestante);
+                                            linha = entrada.readLine();
                                         }
-                                        mensagemProcessada = true;
-                                        break;
-
-                                    } else if (linha.equals("TEMPO_ESGOTADO")) {
-                                        jogadorAtual = (jogadorAtual + 1) % 2;
-                                        jogadores.get(jogadorAtual).println("SUA_VEZ");
-                                        mensagemProcessada = true;
-                                        break;
-
-                                    } else if (linha.startsWith("CHAT ")) {
-                                        for (PrintWriter p : jogadores) {
-                                            p.println(linha);
-                                        }
-
-                                    } else if (linha.startsWith("SAIR")) {
-                                        System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
-                                        jogadores.get(jogadorAtual).println("SAIU");
-                                        removerJogador(jogadorAtual);
-                                        jogoAtivo = false;
-                                        break;
                                     }
+                                } catch (SocketTimeoutException ste) {
+                                    // Tempo esgotado
+                                    jogadores.get(jogadorAtual).println("JOGADA_INVALIDA");
+                                    jogadorAtual = (jogadorAtual + 1) % 2;
+                                    jogadores.get(jogadorAtual).println("SUA_VEZ");
+                                    mensagemProcessada = true;
+                                    break;
                                 }
+
+                                if (linha == null) continue;
+
+                                PrintWriter atual = jogadores.get(jogadorAtual);
+
+                                if (linha.startsWith("JOGADA")) {
+                                    String[] partes = linha.split(" ");
+                                    int x = Integer.parseInt(partes[1]);
+                                    int y = Integer.parseInt(partes[2]);
+                                    char cor = cores[jogadorAtual];
+
+                                    if (tabuleiro.jogadaValida(x, y, cor)) {
+                                        tabuleiro.jogar(x, y, cor);
+                                        enviarJogadaParaJogadores(x, y, cor);
+                                        atual.println("JOGADA_CONFIRMADA");
+
+                                        if (fimDeJogo()) {
+                                            enviarMensagemATodos("FIM");
+                                            jogoAtivo = false;
+                                            break;
+                                        } else {
+                                            jogadorAtual = (jogadorAtual + 1) % 2;
+                                            jogadores.get(jogadorAtual).println("SUA_VEZ");
+                                        }
+                                    } else {
+                                        atual.println("JOGADA_INVALIDA");
+                                    }
+                                    mensagemProcessada = true;
+                                    break;
+
+                                } else if (linha.equals("TEMPO_ESGOTADO")) {
+                                    jogadorAtual = (jogadorAtual + 1) % 2;
+                                    jogadores.get(jogadorAtual).println("SUA_VEZ");
+                                    mensagemProcessada = true;
+                                    break;
+
+                                } else if (linha.startsWith("CHAT ")) {
+                                    for (PrintWriter p : jogadores) {
+                                        p.println(linha);
+                                    }
+
+                                } else if (linha.startsWith("SAIR")) {
+                                    System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
+                                    jogadores.get(jogadorAtual).println("SAIU");
+                                    removerJogador(jogadorAtual);
+                                    jogoAtivo = false;
+                                    break;
+                                }
+                            } catch (SocketTimeoutException ste) {
+                                // Tempo esgotado
+                                jogadores.get(jogadorAtual).println("JOGADA_INVALIDA");
+                                jogadorAtual = (jogadorAtual + 1) % 2;
+                                jogadores.get(jogadorAtual).println("SUA_VEZ");
+                                mensagemProcessada = true;
+                                break;
                             } catch (IOException ex) {
                                 // Erro de leitura: trata como desconexão
                                 removerJogador(i);
@@ -132,6 +161,7 @@ public class ServidorReversi {
                         }
                         try { Thread.sleep(20); } catch (InterruptedException e) { }
                     }
+                    // --- FIM DO CONTROLE DE TEMPO ---
                 }
 
                 // Fecha todas as conexões restantes
