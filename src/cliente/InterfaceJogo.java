@@ -380,7 +380,7 @@ public class InterfaceJogo {
         chatBox.getChildren().addAll(chatTitulo, chatArea, chatInputBox);
 
         // Layout principal: tabuleiro à esquerda, chat à direita, com mais espaço entre eles
-        HBox conteudo = new HBox(40, centro, chatBox); // Espaço aumentado para 40
+        HBox conteudo = new HBox(40, tabuleiroContainer, chatBox); // Espaço aumentado para 40
         conteudo.setAlignment(Pos.CENTER);
         conteudo.setPadding(new Insets(20, 0, 20, 0));
         root.setCenter(conteudo);
