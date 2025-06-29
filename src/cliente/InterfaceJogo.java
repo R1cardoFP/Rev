@@ -56,6 +56,9 @@ public class InterfaceJogo {
     private Label nomesJogadoresLabel;
     private Label contagemPecasLabel;
 
+    // Novo campo para controlar se pode mostrar as hitbox das jogadas possíveis
+    private boolean podeMostrarJogadas = true;
+
     public InterfaceJogo(Stage stage) {
         this.stage = stage;
         this.grelha = new GridPane();
@@ -233,6 +236,7 @@ public class InterfaceJogo {
                                 });
                             } else if (msg.equals("SUA_VEZ")) {
                                 meuTurno = true;
+                                podeMostrarJogadas = true; // Permite mostrar hitbox novamente no novo turno
                                 iniciarTemporizador();
                                 Platform.runLater(this::atualizarTabuleiro);
                             } else if (msg.startsWith("NOME_ADVERSARIO ")) {
@@ -338,19 +342,13 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-        // Configuração da grelha (tabuleiro)
-        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
+        // Tabuleiro com fundo padrão e centrado
         grelha.setMinSize(400, 400);
         grelha.setMaxSize(400, 400);
         grelha.setPrefSize(400, 400);
 
-        // Contêiner para o tabuleiro, centrado
-        HBox tabuleiroContainer = new HBox();
-        tabuleiroContainer.setAlignment(Pos.CENTER);
-        tabuleiroContainer.getChildren().add(grelha);
-        tabuleiroContainer.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
-        root.setCenter(tabuleiroContainer);
-
+        VBox centro = new VBox(grelha);
+        centro.setAlignment(Pos.CENTER);
 
         // Chat ao lado do tabuleiro
         VBox chatBox = new VBox(8);
@@ -395,7 +393,7 @@ public class InterfaceJogo {
         atualizarTabuleiro();
 
         grelha.setOnMouseClicked(e -> {
-            if (!meuTurno) return;
+            if (!meuTurno || !podeMostrarJogadas) return;
             double cellSize = 400.0 / 8.0;
             int coluna = (int) (e.getX() / cellSize);
             int linha = (int) (e.getY() / cellSize);
@@ -410,9 +408,10 @@ public class InterfaceJogo {
 
         confirmarBtn.setOnAction(e -> {
             // Só permite confirmar se for o turno do jogador
-            if (!meuTurno) return;
+            if (!meuTurno || !podeMostrarJogadas) return;
             if (jogadaLinha != -1 && jogadaColuna != -1) {
                 meuTurno = false; // Impede novas jogadas até receber SUA_VEZ do servidor
+                podeMostrarJogadas = false; // Não mostra hitbox até o próximo turno
                 saida.println("JOGADA " + jogadaLinha + " " + jogadaColuna);
                 pararTemporizador();
                 jogadaLinha = -1;
@@ -509,12 +508,13 @@ public class InterfaceJogo {
     private void atualizarTabuleiro() {
         grelha.getChildren().clear();
         double cellSize = getCellSize();
-        boolean mostrarPossiveis = meuTurno; // Só mostra hitbox se for o turno do jogador
+        // Só mostra hitbox se for o turno do jogador E se podeMostrarJogadas for true
+        boolean mostrarPossiveis = meuTurno && podeMostrarJogadas;
 
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
-
+                // Casas alternadas: cinzento e castanho
                 if ((linha + coluna) % 2 == 0) {
                     r.setFill(Color.web("#B0B0B0")); // Cor padrão para casas claras
                 } else {
@@ -571,6 +571,8 @@ public class InterfaceJogo {
     }
 
     private void atualizarCabecalhoJogadores() {
+        // Só tenta atualizar se o label já foi criado
+        if (nomesJogadoresLabel == null) return;
         String corLocal = minhaCor == 'B' ? "Pretas" : "Brancas";
         String corAdv = minhaCor == 'B' ? "Brancas" : "Pretas";
         nomesJogadoresLabel.setText(
@@ -591,6 +593,7 @@ public class InterfaceJogo {
 
         temporizador = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             tempoRestante--;
+
             if (tempoRestante <= 0) {
                 pararTemporizador();
                 meuTurno = false;
