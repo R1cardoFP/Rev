@@ -338,13 +338,19 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-        // Tabuleiro com fundo padrão e centrado
+        // Configuração da grelha (tabuleiro)
+        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
         grelha.setMinSize(400, 400);
         grelha.setMaxSize(400, 400);
         grelha.setPrefSize(400, 400);
 
-        VBox centro = new VBox(grelha);
-        centro.setAlignment(Pos.CENTER);
+        // Contêiner para o tabuleiro, centrado
+        HBox tabuleiroContainer = new HBox();
+        tabuleiroContainer.setAlignment(Pos.CENTER);
+        tabuleiroContainer.getChildren().add(grelha);
+        tabuleiroContainer.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
+        root.setCenter(tabuleiroContainer);
+
 
         // Chat ao lado do tabuleiro
         VBox chatBox = new VBox(8);
@@ -506,7 +512,7 @@ public class InterfaceJogo {
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
-                // Casas alternadas: cinzento e castanho
+
                 if ((linha + coluna) % 2 == 0) {
                     r.setFill(Color.web("#B0B0B0")); // Cor padrão para casas claras
                 } else {
@@ -550,8 +556,6 @@ public class InterfaceJogo {
     }
 
     private void atualizarCabecalhoJogadores() {
-        // Só tenta atualizar se o label já foi criado
-        if (nomesJogadoresLabel == null) return;
         String corLocal = minhaCor == 'B' ? "Pretas" : "Brancas";
         String corAdv = minhaCor == 'B' ? "Brancas" : "Pretas";
         nomesJogadoresLabel.setText(
@@ -569,11 +573,11 @@ public class InterfaceJogo {
     private void iniciarTemporizador() {
         pararTemporizador();
         tempoRestante = 30;
-        Platform.runLater(() -> temporizadorLabel.setText("Tempo restante: " + tempoRestante));
+        temporizadorLabel.setText("Tempo restante: " + tempoRestante);
 
         temporizador = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             tempoRestante--;
-            Platform.runLater(() -> temporizadorLabel.setText("Tempo restante: " + tempoRestante));
+            temporizadorLabel.setText("Tempo restante: " + tempoRestante);
             if (tempoRestante <= 0) {
                 pararTemporizador();
                 meuTurno = false;
