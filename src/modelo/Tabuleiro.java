@@ -1,34 +1,41 @@
 package modelo;
 
+import modelo.Casa;
+import modelo.Peca;
+
 public class Tabuleiro {
-    private final char[][] tabuleiro;
+    private final Casa[][] casas;
 
     public Tabuleiro() {
-        tabuleiro = new char[8][8];
+        casas = new Casa[8][8];
+        for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 8; j++)
+                casas[i][j] = new Casa(i, j);
         inicializar();
     }
 
     public void inicializar() {
         for (int i = 0; i < 8; i++)
             for (int j = 0; j < 8; j++)
-                tabuleiro[i][j] = '-';
+                casas[i][j].setPeca(null);
 
-        tabuleiro[3][3] = 'W';
-        tabuleiro[3][4] = 'B';
-        tabuleiro[4][3] = 'B';
-        tabuleiro[4][4] = 'W';
+        casas[3][3].setPeca(new Peca('W'));
+        casas[3][4].setPeca(new Peca('B'));
+        casas[4][3].setPeca(new Peca('B'));
+        casas[4][4].setPeca(new Peca('W'));
     }
 
     public char getPeca(int linha, int coluna) {
-        return tabuleiro[linha][coluna];
+        Peca p = casas[linha][coluna].getPeca();
+        return p == null ? '-' : p.getCor();
     }
 
     public void setPeca(int linha, int coluna, char cor) {
-        tabuleiro[linha][coluna] = cor;
+        casas[linha][coluna].setPeca(new Peca(cor));
     }
 
     public boolean jogadaValida(int linha, int coluna, char cor) {
-        if (tabuleiro[linha][coluna] != '-') return false;
+        if (!casas[linha][coluna].estaVazia()) return false;
         return existeCaptura(linha, coluna, cor);
     }
 
@@ -43,11 +50,12 @@ public class Tabuleiro {
             boolean encontrouAdversario = false;
 
             while (x >= 0 && x < 8 && y >= 0 && y < 8) {
-                if (tabuleiro[x][y] == adversario) {
+                char c = getPeca(x, y);
+                if (c == adversario) {
                     encontrouAdversario = true;
                     x += dx[dir];
                     y += dy[dir];
-                } else if (tabuleiro[x][y] == cor) {
+                } else if (c == cor) {
                     if (encontrouAdversario)
                         return true;
                     else
@@ -62,7 +70,7 @@ public class Tabuleiro {
 
     public void jogar(int linha, int coluna, char cor) {
         if (!jogadaValida(linha, coluna, cor)) return;
-        tabuleiro[linha][coluna] = cor;
+        casas[linha][coluna].setPeca(new Peca(cor));
         virarPecas(linha, coluna, cor);
     }
 
@@ -77,17 +85,17 @@ public class Tabuleiro {
             int passos = 0;
 
             while (x >= 0 && x < 8 && y >= 0 && y < 8) {
-                if (tabuleiro[x][y] == adversario) {
+                char c = getPeca(x, y);
+                if (c == adversario) {
                     encontrouAdversario = true;
                     x += dx[dir];
                     y += dy[dir];
                     passos++;
-                } else if (tabuleiro[x][y] == cor) {
+                } else if (c == cor) {
                     if (encontrouAdversario) {
-                        // virar as peças entre linha,coluna e x,y
                         int vx = linha + dx[dir], vy = coluna + dy[dir];
                         for (int i = 0; i < passos; i++) {
-                            tabuleiro[vx][vy] = cor;
+                            casas[vx][vy].setPeca(new Peca(cor));
                             vx += dx[dir];
                             vy += dy[dir];
                         }
@@ -104,7 +112,7 @@ public class Tabuleiro {
         int cont = 0;
         for (int i = 0; i < 8; i++)
             for (int j = 0; j < 8; j++)
-                if (tabuleiro[i][j] == cor)
+                if (getPeca(i, j) == cor)
                     cont++;
         return cont;
     }

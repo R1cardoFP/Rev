@@ -1,6 +1,8 @@
 package servidor;
 
 import modelo.Tabuleiro;
+import modelo.Casa;
+import modelo.Peca;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -20,7 +22,7 @@ public class ServidorReversi {
 
     public static void main(String[] args) {
 
-        String ipManual = "192.168.1.13"; // <- Define aqui o IP
+        String ipManual = "192.168.1.100"; // <- Define aqui o IP
         int porta = 2025;
 
 
