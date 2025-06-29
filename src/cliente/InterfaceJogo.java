@@ -526,14 +526,25 @@ public class InterfaceJogo {
                     c.setStrokeWidth(cellSize * 0.09);
                     grelha.add(c, coluna, linha);
                 } else if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
+                    // Mostra um quadrado pequeno e sem opacidade para jogadas válidas
+                    double size = cellSize * 0.4;
+                    Rectangle highlight = new Rectangle(size, size);
+                    highlight.setFill(Color.web("#FFD700")); // Amarelo sólido
+                    highlight.setArcWidth(size * 0.18);
+                    highlight.setArcHeight(size * 0.18);
+                    // Centralizar o quadrado pequeno na célula
+                    highlight.setTranslateX((cellSize - size) / 2);
+                    highlight.setTranslateY((cellSize - size) / 2);
+                    grelha.add(highlight, coluna, linha);
+
+                    // Se esta é a posição selecionada, mostra um fade da peça
                     if (linha == jogadaLinha && coluna == jogadaColuna) {
-                        Circle marcador = new Circle(cellSize * 0.4);
-                        marcador.setFill(Color.web("#FFD70080"));
-                        grelha.add(marcador, coluna, linha);
-                    } else {
-                        Circle marcador = new Circle(cellSize * 0.14);
-                        marcador.setFill(Color.web("#FFD700B0"));
-                        grelha.add(marcador, coluna, linha);
+                        Circle fadePeca = new Circle(cellSize * 0.4);
+                        fadePeca.setFill(minhaCor == 'B' ? Color.BLACK : Color.WHITE);
+                        fadePeca.setOpacity(0.4); // Fade
+                        fadePeca.setStroke(Color.web("#555"));
+                        fadePeca.setStrokeWidth(cellSize * 0.09);
+                        grelha.add(fadePeca, coluna, linha);
                     }
                 }
             }

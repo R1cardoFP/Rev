@@ -71,37 +71,38 @@ public class ServidorReversi {
                             enviarMensagemATodos("FIM");
                             break;
                         } else {
-                            // Só passa o turno se o próximo jogador tiver jogada válida
+                            // Passa o turno para o próximo jogador, mas só se ele tiver jogada válida
                             int proximo = (jogadorAtual + 1) % 2;
-                            boolean proximoTemJogada = false;
-                            for (int i = 0; i < 8 && !proximoTemJogada; i++) {
-                                for (int j = 0; j < 8 && !proximoTemJogada; j++) {
-                                    if (tabuleiro.jogadaValida(i, j, cores[proximo])) {
-                                        proximoTemJogada = true;
-                                    }
-                                }
-                            }
+                            boolean proximoTemJogada = jogadorTemJogada(proximo);
+                            boolean atualTemJogada = jogadorTemJogada(jogadorAtual);
+
                             if (proximoTemJogada) {
                                 jogadorAtual = proximo;
+                                enviarMensagemATodos("SUA_VEZ");
+                            } else if (atualTemJogada) {
+                                // O adversário não pode jogar, mas o atual ainda pode
+                                enviarMensagemATodos("SUA_VEZ");
+                            } else {
+                                // Nenhum pode jogar, fim de jogo
+                                enviarMensagemATodos("FIM");
+                                break;
                             }
-                            enviarMensagemATodos("SUA_VEZ");
                         }
                     }
                 } else if (linha.equals("TEMPO_ESGOTADO")) {
-                    // Só passa o turno se o próximo jogador tiver jogada válida
                     int proximo = (jogadorAtual + 1) % 2;
-                    boolean proximoTemJogada = false;
-                    for (int i = 0; i < 8 && !proximoTemJogada; i++) {
-                        for (int j = 0; j < 8 && !proximoTemJogada; j++) {
-                            if (tabuleiro.jogadaValida(i, j, cores[proximo])) {
-                                proximoTemJogada = true;
-                            }
-                        }
-                    }
+                    boolean proximoTemJogada = jogadorTemJogada(proximo);
+                    boolean atualTemJogada = jogadorTemJogada(jogadorAtual);
+
                     if (proximoTemJogada) {
                         jogadorAtual = proximo;
+                        enviarMensagemATodos("SUA_VEZ");
+                    } else if (atualTemJogada) {
+                        enviarMensagemATodos("SUA_VEZ");
+                    } else {
+                        enviarMensagemATodos("FIM");
+                        break;
                     }
-                    enviarMensagemATodos("SUA_VEZ");
                 } else if (linha.startsWith("CHAT ")) {
                     // Retransmitir mensagem de chat para ambos (garante que todos veem, inclusive quem enviou)
                     for (PrintWriter p : jogadores) {
@@ -152,5 +153,15 @@ public class ServidorReversi {
                 }
             }
         return true;
+    }
+
+    // Adicione este método auxiliar:
+    private static boolean jogadorTemJogada(int jogador) {
+        char cor = cores[jogador];
+        for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 8; j++)
+                if (tabuleiro.jogadaValida(i, j, cor))
+                    return true;
+        return false;
     }
 }
