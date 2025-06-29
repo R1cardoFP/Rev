@@ -191,10 +191,7 @@ public class ServidorReversi {
                                     // Jogador saiu do jogo
                                     System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
                                     try {
-                                        int outro = (jogadorAtual == 0) ? 1 : 0;
-                                        if (jogadores.size() > outro) {
-                                            jogadores.get(outro).println("SAIU");
-                                        }
+                                        jogadores.get(jogadorAtual).println("SAIU");
                                     } catch (Exception ex) {}
                                     removerJogador(jogadorAtual);
                                     jogoAtivo = false;
@@ -211,13 +208,6 @@ public class ServidorReversi {
                             } catch (IOException ex) {
                                 // Jogador desconectado
                                 System.out.println("Jogador desconectado.");
-                                try {
-                                    // Notifica o outro jogador, se ainda estiver conectado
-                                    int outro = (i == 0) ? 1 : 0;
-                                    if (jogadores.size() > outro) {
-                                        jogadores.get(outro).println("SAIU");
-                                    }
-                                } catch (Exception ignore) {}
                                 removerJogador(i);
                                 jogoAtivo = false;
                                 break;
