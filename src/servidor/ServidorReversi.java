@@ -39,7 +39,7 @@ public class ServidorReversi {
      */
     public static void main(String[] args) {
 
-        String ipManual = "192.168.1.100"; // IP onde o servidor vai escutar (mude para o IP da sua máquina)
+        String ipManual = "26.1.71.80"; // IP onde o servidor vai escutar (mude para o IP da sua máquina)
         int porta = 2025; // Porta onde o servidor vai escutar
 
         try (ServerSocket serverSocket = new ServerSocket(porta, 0, InetAddress.getByName(ipManual))) {
@@ -191,7 +191,10 @@ public class ServidorReversi {
                                     // Jogador saiu do jogo
                                     System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
                                     try {
-                                        jogadores.get(jogadorAtual).println("SAIU");
+                                        int outro = (jogadorAtual == 0) ? 1 : 0;
+                                        if (jogadores.size() > outro) {
+                                            jogadores.get(outro).println("SAIU");
+                                        }
                                     } catch (Exception ex) {}
                                     removerJogador(jogadorAtual);
                                     jogoAtivo = false;
@@ -208,6 +211,13 @@ public class ServidorReversi {
                             } catch (IOException ex) {
                                 // Jogador desconectado
                                 System.out.println("Jogador desconectado.");
+                                try {
+                                    // Notifica o outro jogador, se ainda estiver conectado
+                                    int outro = (i == 0) ? 1 : 0;
+                                    if (jogadores.size() > outro) {
+                                        jogadores.get(outro).println("SAIU");
+                                    }
+                                } catch (Exception ignore) {}
                                 removerJogador(i);
                                 jogoAtivo = false;
                                 break;
