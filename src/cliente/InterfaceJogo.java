@@ -532,15 +532,14 @@ public class InterfaceJogo {
                     c.setStrokeWidth(cellSize * 0.09);
                     grelha.add(c, coluna, linha);
                 } else if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
-                    // Mostra um quadrado pequeno e sem opacidade para jogadas válidas
+                    // Quadrado pequeno, centrado na célula
                     double size = cellSize * 0.4;
                     Rectangle highlight = new Rectangle(size, size);
                     highlight.setFill(Color.web("#FFD700")); // Amarelo sólido
                     highlight.setArcWidth(size * 0.18);
                     highlight.setArcHeight(size * 0.18);
-                    // Centralizar o quadrado pequeno na célula
-                    highlight.setTranslateX((cellSize - size) / 2);
-                    highlight.setTranslateY((cellSize - size) / 2);
+                    // Centralizar o quadrado pequeno na célula usando margens do GridPane
+                    GridPane.setMargin(highlight, new Insets((cellSize - size) / 2));
                     grelha.add(highlight, coluna, linha);
 
                     // Se esta é a posição selecionada, mostra um fade da peça
