@@ -32,15 +32,13 @@ public class ServidorReversi {
                 jogadores.add(out);
                 entradas.add(in);
 
-                // Recebe o nome do jogador
                 String nome = in.readLine();
                 if (nome == null || nome.isEmpty()) nome = "Jogador" + jogadores.size();
                 nomes.add(nome);
 
-                out.println(cores[jogadores.size() - 1]); // Envia cor ao jogador
+                out.println(cores[jogadores.size() - 1]); // Envia cor
             }
 
-            // Agora que ambos estão ligados, enviar o nome do adversário para cada um
             jogadores.get(0).println("NOME_ADVERSARIO " + nomes.get(1));
             jogadores.get(1).println("NOME_ADVERSARIO " + nomes.get(0));
 
@@ -49,20 +47,16 @@ public class ServidorReversi {
             jogadores.get(jogadorAtual).println("SUA_VEZ");
 
             while (true) {
-                // Espera mensagem de qualquer jogador
                 boolean mensagemProcessada = false;
+
                 while (!mensagemProcessada) {
                     for (int i = 0; i < entradas.size(); i++) {
+                        if (i != jogadorAtual) continue; // Ignora quem não for o da vez
+
                         BufferedReader entrada = entradas.get(i);
                         if (entrada.ready()) {
                             String linha = entrada.readLine();
                             if (linha == null) continue;
-
-                            if (i != jogadorAtual) {
-                                // Não é o turno deste jogador
-                                jogadores.get(i).println("NAO_E_O_SEU_TURNO");
-                                continue;
-                            }
 
                             PrintWriter atual = jogadores.get(jogadorAtual);
 
@@ -120,7 +114,7 @@ public class ServidorReversi {
                             }
                         }
                     }
-                    // Pequena pausa para evitar busy-wait
+
                     try { Thread.sleep(20); } catch (InterruptedException e) { }
                 }
             }

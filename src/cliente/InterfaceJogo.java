@@ -523,7 +523,7 @@ public class InterfaceJogo {
         grelha.getChildren().clear();
         double cellSize = getCellSize();
         // Só mostra hitbox se for o turno do jogador
-        boolean mostrarPossiveis = meuTurno;
+        boolean mostrarPossiveis = meuTurno; // <-- garantir que só mostra no seu turno
 
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
@@ -549,6 +549,7 @@ public class InterfaceJogo {
                     GridPane.setMargin(c, new Insets((cellSize - c.getRadius() * 2) / 2));
                     grelha.add(c, coluna, linha);
                 } else if (mostrarPossiveis && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
+                    // Só mostra hitbox se for o turno do jogador
                     double size = cellSize * 0.4;
                     Rectangle highlight = new Rectangle(size, size);
                     highlight.setFill(Color.web("#FFD700"));
