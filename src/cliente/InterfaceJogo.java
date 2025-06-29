@@ -1,5 +1,6 @@
 package cliente;
 
+// Importações necessárias para a interface gráfica e comunicação
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -28,56 +29,82 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
 
+/**
+ * Classe principal da interface do jogo Reversi (Othello).
+ * Responsável por toda a interação visual e comunicação com o servidor.
+ *
+ * Comentários detalhados para facilitar a compreensão de quem não tem experiência com programação.
+ */
 public class InterfaceJogo {
+    // Janela principal do jogo
     private final Stage stage;
+    // Painel onde o tabuleiro será desenhado
     private final Pane tabuleiroPane; // Substitui o GridPane grelha
+    // Objeto que representa o estado do tabuleiro (peças, jogadas, etc)
     private final Tabuleiro tabuleiro;
+    // Label que mostra o temporizador (tempo de cada jogada)
     private final Label temporizadorLabel;
+    // Objeto que controla a contagem do tempo
     private Timeline temporizador;
+    // Tempo restante para o jogador jogar
     private int tempoRestante;
 
+    // Cor do jogador local ('B' para pretas, 'W' para brancas)
     private char minhaCor;
+    // Objetos para comunicação com o servidor
     private Socket socket;
     private BufferedReader entrada;
     private PrintWriter saida;
+    // Indica se é a vez deste jogador
     private boolean meuTurno = false;
 
-    // Guardar a jogada selecionada
+    // Guarda a linha e coluna da jogada selecionada
     private int jogadaLinha = -1;
     private int jogadaColuna = -1;
 
+    // Nome do jogador local e do adversário
     private String nomeJogadorLocal = "";
     private String nomeJogadorAdversario = "Aguardando...";
 
-    // Adicione estas variáveis para o chat
+    // Variáveis para o chat
     private TextArea chatArea;
     private TextField chatInput;
     private Button chatSendBtn;
 
-    // Adicione estas variáveis de instância para evitar erro de escopo
+    // Labels para mostrar nomes e contagem de peças
     private Label nomesJogadoresLabel;
     private Label contagemPecasLabel;
 
-    // Novo campo para controlar se pode mostrar as hitbox das jogadas possíveis
+    // Controla se pode mostrar as jogadas possíveis (hitbox)
     private boolean podeMostrarJogadas = true;
-
-    // Novo campo para controlar se o jogo terminou
+    // Indica se o jogo terminou
     private boolean jogoTerminou = false;
 
+    /**
+     * Construtor da interface. Inicializa os componentes principais.
+     * stage: Janela principal do JavaFX
+     */
     public InterfaceJogo(Stage stage) {
         this.stage = stage;
         this.tabuleiroPane = new Pane();
         this.tabuleiro = new Tabuleiro();
         this.temporizadorLabel = new Label("");
-        // grelha removido
+        // grelha removido (não é mais usado)
     }
 
+    /**
+     * Método para mostrar a interface inicial (janela de conexão).
+     */
     public void mostrar() {
         mostrarJanelaConexao();
     }
 
+    /**
+     * Mostra a janela para o jogador inserir IP, porta e nome para conectar ao servidor.
+     * Tem validações para garantir que os campos estão preenchidos corretamente.
+     */
     private void mostrarJanelaConexao() {
-        VBox caixa = new VBox(18);
+        VBox caixa = new VBox(18); // Caixa vertical para organizar os campos
         caixa.setPadding(new Insets(36, 36, 36, 36));
         caixa.setAlignment(Pos.CENTER);
         caixa.setStyle(
@@ -86,26 +113,32 @@ public class InterfaceJogo {
             "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
         );
 
+        // Título da janela
         Label titulo = new Label("Conectar ao Servidor Reversi");
         titulo.setStyle("-fx-font-size: 23px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A; -fx-padding: 0 0 10 0;");
 
+        // Campo para o IP do servidor
         TextField ipField = new TextField("");
         ipField.setPromptText("Endereço IP do servidor");
         ipField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12; -fx-background-color: #f9f7f3; -fx-border-color: #c2a477; -fx-border-width: 1.2px;");
 
+        // Campo para a porta
         TextField portaField = new TextField("");
         portaField.setPromptText("Porta");
         portaField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12; -fx-background-color: #f9f7f3; -fx-border-color: #c2a477; -fx-border-width: 1.2px;");
 
+        // Campo para o nome do jogador
         TextField nomeJogadorField = new TextField();
         nomeJogadorField.setPromptText("Nome do jogador");
         nomeJogadorField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12; -fx-background-color: #f9f7f3; -fx-border-color: #c2a477; -fx-border-width: 1.2px;");
 
+        // Botão para conectar
         Button conectarBtn = new Button("Conectar");
         conectarBtn.setStyle(
             "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; " +
             "-fx-background-radius: 12px; -fx-pref-width: 180px; -fx-pref-height: 44px; -fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
         );
+        // Efeito visual ao passar o mouse
         conectarBtn.setOnMouseEntered(e -> conectarBtn.setStyle(
             "-fx-background-color: #c2a477; -fx-text-fill: #8B5C2A; -fx-font-size: 18px; -fx-font-weight: bold; " +
             "-fx-background-radius: 12px; -fx-pref-width: 180px; -fx-pref-height: 44px; -fx-effect: dropshadow(gaussian, #8B5C2A, 2, 0, 0, 1);"
@@ -115,10 +148,12 @@ public class InterfaceJogo {
             "-fx-background-radius: 12px; -fx-pref-width: 180px; -fx-pref-height: 44px; -fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
         ));
 
+        // Label para mostrar mensagens de erro
         Label erroLabel = new Label();
         erroLabel.setTextFill(Color.web("#c0392b"));
         erroLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
+        // Adiciona todos os componentes à caixa
         caixa.getChildren().addAll(
             titulo,
             ipField,
@@ -128,16 +163,19 @@ public class InterfaceJogo {
             erroLabel
         );
 
+        // Cria a cena e mostra na janela
         Scene cenaConexao = new Scene(caixa, 400, 350);
         stage.setScene(cenaConexao);
         stage.setTitle("Conectar ao Servidor");
         stage.show();
 
+        // Ação ao clicar no botão conectar
         conectarBtn.setOnAction(e -> {
             String ip = ipField.getText().trim();
             String portaTexto = portaField.getText().trim();
             String nomeJogador = nomeJogadorField.getText().trim();
 
+            // Verifica se todos os campos estão preenchidos
             if (ip.isEmpty() || portaTexto.isEmpty() || nomeJogador.isEmpty()) {
                 erroLabel.setText("Por favor, preencha todos os campos.");
                 return;
@@ -153,13 +191,17 @@ public class InterfaceJogo {
                 return;
             }
 
-            // FECHA socket antigo se existir antes de tentar nova ligação
+            // Fecha conexão antiga, se existir
             fecharSocket();
 
+            // Tenta conectar ao servidor
             ligarAoServidor(ip, porta, nomeJogador);
         });
     }
 
+    /**
+     * Mostra uma janela de espera enquanto aguarda outro jogador conectar.
+     */
     private void mostrarJanelaEspera() {
         VBox caixa = new VBox(22);
         caixa.setPadding(new Insets(48, 36, 48, 36));
@@ -189,6 +231,13 @@ public class InterfaceJogo {
         });
     }
 
+    /**
+     * Tenta conectar ao servidor com os dados fornecidos.
+     * Faz toda a comunicação inicial e inicia a escuta de mensagens do servidor.
+     * ip: Endereço IP do servidor
+     * porto: Porta do servidor
+     * nomeJogador: Nome do jogador local
+     */
     private void ligarAoServidor(String ip, int porto, String nomeJogador) {
         // Só tenta conectar se o IP for válido
         if (!ip.matches("^\\d{1,3}(\\.\\d{1,3}){3}$") && !ip.equalsIgnoreCase("localhost")) {
@@ -291,6 +340,10 @@ public class InterfaceJogo {
         }).start();
     }
 
+    /**
+     * Mostra a janela principal do jogo, com o tabuleiro, chat e botões.
+     * Organiza todos os elementos visuais e define as ações dos botões.
+     */
     private void mostrarJanelaJogo() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: #e9e4d9;");
@@ -515,6 +568,9 @@ public class InterfaceJogo {
         chatInput.setOnAction(e -> enviarMensagemChat());
     }
 
+    /**
+     * Envia a mensagem do chat para o servidor e mostra imediatamente no chat local.
+     */
     private void enviarMensagemChat() {
         String texto = chatInput.getText().trim();
         if (!texto.isEmpty()) {
@@ -526,6 +582,10 @@ public class InterfaceJogo {
         }
     }
 
+    /**
+     * Adiciona uma mensagem ao chat, evitando duplicação.
+     * mensagem: Mensagem a ser adicionada
+     */
     private void adicionarMensagemChat(String mensagem) {
         // Evita duplicação: só adiciona se a última linha for diferente
         String conteudoAtual = chatArea.getText();
@@ -534,6 +594,9 @@ public class InterfaceJogo {
         }
     }
 
+    /**
+     * Mostra um popup com as regras do jogo.
+     */
     private void mostrarPopupRegras() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Regras do Reversi");
@@ -602,6 +665,9 @@ public class InterfaceJogo {
         alert.showAndWait();
     }
 
+    /**
+     * Mostra um popup com o resultado final do jogo (quem ganhou ou se empatou).
+     */
     private void mostrarPopupVencedor() {
         jogoTerminou = true;
         int pretas = tabuleiro.contarPecas('B');
@@ -693,13 +759,19 @@ public class InterfaceJogo {
         fade.play();
     }
 
+    /**
+     * Calcula o tamanho de cada célula do tabuleiro, para desenhar corretamente.
+     * return: Tamanho em pixels de cada célula
+     */
     private double getCellSize() {
         double largura = tabuleiroPane.getWidth() > 0 ? tabuleiroPane.getWidth() : tabuleiroPane.getPrefWidth();
         double altura = tabuleiroPane.getHeight() > 0 ? tabuleiroPane.getHeight() : tabuleiroPane.getPrefHeight();
         return Math.min(largura, altura) / 8.0;
     }
 
-
+    /**
+     * Atualiza o desenho do tabuleiro, mostrando peças, jogadas possíveis e efeitos visuais.
+     */
     private void atualizarTabuleiro() {
         tabuleiroPane.getChildren().clear();
         double cellSize = getCellSize();
@@ -771,6 +843,9 @@ public class InterfaceJogo {
         atualizarContagemPecas();
     }
 
+    /**
+     * Atualiza o cabeçalho com os nomes dos jogadores e suas cores.
+     */
     private void atualizarCabecalhoJogadores() {
         // Só tenta atualizar se o label já foi criado
         if (nomesJogadoresLabel == null) return;
@@ -782,12 +857,18 @@ public class InterfaceJogo {
         );
     }
 
+    /**
+     * Atualiza a contagem de peças pretas e brancas no tabuleiro.
+     */
     private void atualizarContagemPecas() {
         int pretas = tabuleiro.contarPecas('B');
         int brancas = tabuleiro.contarPecas('W');
         contagemPecasLabel.setText("⚫ Pretas: " + pretas + "   |   ⚪ Brancas: " + brancas);
     }
 
+    /**
+     * Inicia o temporizador de 30 segundos para o jogador fazer sua jogada.
+     */
     private void iniciarTemporizador() {
         pararTemporizador();
         tempoRestante = 30;
@@ -808,13 +889,22 @@ public class InterfaceJogo {
         temporizador.play();
     }
 
+    /**
+     * Para o temporizador, se estiver rodando.
+     */
     private void pararTemporizador() {
         if (temporizador != null) {
             temporizador.stop();
         }
     }
 
-    // Adicione este método à classe InterfaceJogo
+    /**
+     * Mostra um alerta estilizado na tela.
+     * Parâmetros:
+     *  titulo   - Título do alerta
+     *  mensagem - Mensagem do alerta
+     *  tipo     - Tipo do alerta (informação, erro, etc)
+     */
     private void mostrarAlertaBonito(String titulo, String mensagem, Alert.AlertType tipo) {
         Alert alert = new Alert(tipo);
         alert.setTitle(titulo);
@@ -828,6 +918,9 @@ public class InterfaceJogo {
         alert.showAndWait();
     }
 
+    /**
+     * Fecha a conexão com o servidor, liberando recursos.
+     */
     private void fecharSocket() {
         try {
             if (entrada != null) entrada.close();
