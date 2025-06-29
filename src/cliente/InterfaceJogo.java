@@ -379,15 +379,15 @@ public class InterfaceJogo {
 
         chatBox.getChildren().addAll(chatTitulo, chatArea, chatInputBox);
 
-        // Layout principal: tabuleiro à esquerda, chat à direita
-        HBox conteudo = new HBox(20, tabuleiroContainer, chatBox);
+        // Layout principal: tabuleiro à esquerda, chat à direita, com mais espaço entre eles
+        HBox conteudo = new HBox(40, centro, chatBox); // Espaço aumentado para 40
         conteudo.setAlignment(Pos.CENTER);
         conteudo.setPadding(new Insets(20, 0, 20, 0));
         root.setCenter(conteudo);
 
         grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
 
-        Scene cenaJogo = new Scene(root, 720, 650);
+        Scene cenaJogo = new Scene(root, 760, 650);
         stage.setScene(cenaJogo);
         stage.setTitle("Jogo Reversi");
         stage.show();
@@ -417,7 +417,7 @@ public class InterfaceJogo {
                 pararTemporizador();
                 jogadaLinha = -1;
                 jogadaColuna = -1;
-                atualizarTabuleiro();
+                atualizarTabuleiro(); // hitbox desaparece imediatamente após jogar
             } else {
                 mostrarAlertaBonito("Selecione uma jogada", "Selecione uma posição válida no tabuleiro antes de confirmar.", Alert.AlertType.INFORMATION);
             }
@@ -509,6 +509,8 @@ public class InterfaceJogo {
     private void atualizarTabuleiro() {
         grelha.getChildren().clear();
         double cellSize = getCellSize();
+        boolean mostrarPossiveis = meuTurno; // Só mostra hitbox se for o turno do jogador
+
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
@@ -533,8 +535,8 @@ public class InterfaceJogo {
                     // Centralizar a peça na célula
                     GridPane.setMargin(c, new Insets((cellSize - c.getRadius() * 2) / 2));
                     grelha.add(c, coluna, linha);
-                } else if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
-                    // Quadrado pequeno, centrado na célula
+                } else if (mostrarPossiveis && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
+                    // Quadrado pequeno, centrado na célula e nunca fora do tabuleiro
                     double size = cellSize * 0.4;
                     Rectangle highlight = new Rectangle(size, size);
                     highlight.setFill(Color.web("#FFD700")); // Amarelo sólido
@@ -586,11 +588,9 @@ public class InterfaceJogo {
     private void iniciarTemporizador() {
         pararTemporizador();
         tempoRestante = 30;
-        Platform.runLater(() -> temporizadorLabel.setText("Tempo restante: " + tempoRestante));
 
         temporizador = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             tempoRestante--;
-            temporizadorLabel.setText("Tempo restante: " + tempoRestante);
             if (tempoRestante <= 0) {
                 pararTemporizador();
                 meuTurno = false;
