@@ -81,6 +81,8 @@ public class ServidorReversi {
                                 enviarMensagemATodos("SUA_VEZ");
                             } else if (atualTemJogada) {
                                 // O adversário não pode jogar, mas o atual ainda pode
+                                // Mas NÃO permite jogar duas vezes seguidas, passa o turno mesmo assim
+                                jogadorAtual = proximo;
                                 enviarMensagemATodos("SUA_VEZ");
                             } else {
                                 // Nenhum pode jogar, fim de jogo
@@ -98,6 +100,8 @@ public class ServidorReversi {
                         jogadorAtual = proximo;
                         enviarMensagemATodos("SUA_VEZ");
                     } else if (atualTemJogada) {
+                        // Mesmo se o atual ainda tiver jogada, passa o turno
+                        jogadorAtual = proximo;
                         enviarMensagemATodos("SUA_VEZ");
                     } else {
                         enviarMensagemATodos("FIM");
