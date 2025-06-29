@@ -1,6 +1,8 @@
 package servidor;
 
 import modelo.Tabuleiro;
+import modelo.Casa;
+import modelo.Peca;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -19,13 +21,10 @@ public class ServidorReversi {
     private static int jogadorAtual = 0;
 
     public static void main(String[] args) {
-<<<<<<< HEAD
-        String ipManual = "192.168.1.13"; // <- Define aqui o IP
+
+        String ipManual = "192.168.1.100"; // <- Define aqui o IP
         int porta = 2025;
-=======
-        String ipManual = "192.168.1.138"; // <- Define aqui o IP
-        int porta = 2000;
->>>>>>> 912f35190940f44d636a8cca7a5887af454dd88f
+
 
         try (ServerSocket serverSocket = new ServerSocket(porta, 0, InetAddress.getByName(ipManual))) {
             System.out.println("Servidor Reversi a correr em " + ipManual + ":" + porta);

@@ -19,6 +19,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import modelo.Tabuleiro;
+import modelo.Casa;
+import modelo.Peca;
 
 import java.io.*;
 import java.net.Socket;
@@ -59,6 +61,9 @@ public class InterfaceJogo {
     // Novo campo para controlar se pode mostrar as hitbox das jogadas possíveis
     private boolean podeMostrarJogadas = true;
 
+    // Novo campo para controlar se o jogo terminou
+    private boolean jogoTerminou = false;
+
     public InterfaceJogo(Stage stage) {
         this.stage = stage;
         this.tabuleiroPane = new Pane();
@@ -76,7 +81,7 @@ public class InterfaceJogo {
         caixa.setPadding(new Insets(36, 36, 36, 36));
         caixa.setAlignment(Pos.CENTER);
         caixa.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);" +
+            "-fx-background-color: #e9e4d9;" +
             "-fx-border-radius: 18px; -fx-background-radius: 18px;" +
             "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
         );
@@ -86,15 +91,15 @@ public class InterfaceJogo {
 
         TextField ipField = new TextField("");
         ipField.setPromptText("Endereço IP do servidor");
-        ipField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12;");
+        ipField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12; -fx-background-color: #f9f7f3; -fx-border-color: #c2a477; -fx-border-width: 1.2px;");
 
         TextField portaField = new TextField("");
         portaField.setPromptText("Porta");
-        portaField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12;");
+        portaField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12; -fx-background-color: #f9f7f3; -fx-border-color: #c2a477; -fx-border-width: 1.2px;");
 
         TextField nomeJogadorField = new TextField();
         nomeJogadorField.setPromptText("Nome do jogador");
-        nomeJogadorField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12;");
+        nomeJogadorField.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px; -fx-padding: 8 12 8 12; -fx-background-color: #f9f7f3; -fx-border-color: #c2a477; -fx-border-width: 1.2px;");
 
         Button conectarBtn = new Button("Conectar");
         conectarBtn.setStyle(
@@ -102,7 +107,7 @@ public class InterfaceJogo {
             "-fx-background-radius: 12px; -fx-pref-width: 180px; -fx-pref-height: 44px; -fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
         );
         conectarBtn.setOnMouseEntered(e -> conectarBtn.setStyle(
-            "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-size: 18px; -fx-font-weight: bold; " +
+            "-fx-background-color: #c2a477; -fx-text-fill: #8B5C2A; -fx-font-size: 18px; -fx-font-weight: bold; " +
             "-fx-background-radius: 12px; -fx-pref-width: 180px; -fx-pref-height: 44px; -fx-effect: dropshadow(gaussian, #8B5C2A, 2, 0, 0, 1);"
         ));
         conectarBtn.setOnMouseExited(e -> conectarBtn.setStyle(
@@ -157,7 +162,7 @@ public class InterfaceJogo {
         caixa.setPadding(new Insets(48, 36, 48, 36));
         caixa.setAlignment(Pos.CENTER);
         caixa.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);" +
+            "-fx-background-color: #e9e4d9;" +
             "-fx-border-radius: 18px; -fx-background-radius: 18px;" +
             "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
         );
@@ -168,7 +173,6 @@ public class InterfaceJogo {
         Label info = new Label("Assim que outro jogador se conectar,\no jogo irá começar automaticamente.");
         info.setStyle("-fx-font-size: 16px; -fx-text-fill: #444; -fx-padding: 0 0 10 0; -fx-alignment: center;");
 
-        // Animação simples de "loading"
         Label loading = new Label("⏳");
         loading.setStyle("-fx-font-size: 32px; -fx-padding: 10 0 0 0;");
 
@@ -238,14 +242,7 @@ public class InterfaceJogo {
                                 });
                             } else if (msg.equals("FIM")) {
                                 pararTemporizador();
-                                Platform.runLater(() -> {
-                                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                                    alert.setHeaderText("Fim do Jogo");
-                                    int pretas = tabuleiro.contarPecas('B');
-                                    int brancas = tabuleiro.contarPecas('W');
-                                    alert.setContentText("Pretas: " + pretas + "\nBrancas: " + brancas);
-                                    alert.showAndWait();
-                                });
+                                Platform.runLater(() -> mostrarPopupVencedor());
                             } else if (msg.equals("SUA_VEZ")) {
                                 meuTurno = true;
                                 podeMostrarJogadas = true; // Permite mostrar hitbox novamente no novo turno
@@ -266,12 +263,15 @@ public class InterfaceJogo {
                             }
                         }
                     } catch (IOException e) {
-                        Platform.runLater(() -> {
-                            Alert alert = new Alert(Alert.AlertType.ERROR);
-                            alert.setHeaderText("Erro de comunicação com o servidor");
-                            alert.setContentText(e.getMessage());
-                            alert.showAndWait();
-                        });
+                        // Só mostra erro se o jogo não terminou normalmente
+                        if (!jogoTerminou) {
+                            Platform.runLater(() -> {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setHeaderText("Erro de comunicação com o servidor");
+                                alert.setContentText(e.getMessage());
+                                alert.showAndWait();
+                            });
+                        }
                     }
                 });
                 leituraThread.setDaemon(true);
@@ -290,7 +290,7 @@ public class InterfaceJogo {
 
     private void mostrarJanelaJogo() {
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);");
+        root.setStyle("-fx-background-color: #e9e4d9;");
 
         VBox topo = new VBox();
         topo.setAlignment(Pos.CENTER);
@@ -315,7 +315,6 @@ public class InterfaceJogo {
         Button regrasBtn = new Button("Regras");
         Button sairBtn = new Button("Sair");
 
-        // Tamanhos fixos para evitar bugs de hitbox
         confirmarBtn.setMinWidth(180);
         confirmarBtn.setPrefWidth(180);
         confirmarBtn.setMaxWidth(180);
@@ -337,7 +336,7 @@ public class InterfaceJogo {
         sairBtn.setMaxHeight(42);
 
         String estiloBtn = "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px;";
-        String estiloBtnHover = "-fx-background-color: #B0B0B0; -fx-text-fill: #222; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px;";
+        String estiloBtnHover = "-fx-background-color: #c2a477; -fx-text-fill: #8B5C2A; -fx-font-weight: bold; -fx-font-size: 17px; -fx-background-radius: 10px;";
 
         confirmarBtn.setStyle(estiloBtn);
         regrasBtn.setStyle(estiloBtn);
@@ -368,7 +367,7 @@ public class InterfaceJogo {
         chatBox.setPadding(new Insets(16, 16, 16, 16));
         chatBox.setAlignment(Pos.TOP_CENTER);
         chatBox.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #f6f3ee 80%, #e9e4d9 100%);" +
+            "-fx-background-color: #e9e4d9;" +
             "-fx-border-color: #8B5C2A; -fx-border-width: 2.5px; " +
             "-fx-border-radius: 16px; -fx-background-radius: 16px;" +
             "-fx-effect: dropshadow(gaussian, #8B5C2A55, 14, 0.18, 0, 3);"
@@ -419,7 +418,7 @@ public class InterfaceJogo {
             "-fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
         );
         chatSendBtn.setOnMouseEntered(e -> chatSendBtn.setStyle(
-            "-fx-background-color: #FFD700; -fx-text-fill: #8B5C2A; -fx-font-weight: bold;" +
+            "-fx-background-color: #c2a477; -fx-text-fill: #8B5C2A; -fx-font-weight: bold;" +
             "-fx-font-size: 15px; -fx-background-radius: 8px;" +
             "-fx-effect: dropshadow(gaussian, #8B5C2A, 2, 0, 0, 1);"
         ));
@@ -440,7 +439,7 @@ public class InterfaceJogo {
         root.setCenter(conteudo);
 
         tabuleiroPane.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #a67c52 80%, #e9e4d9 100%);" +
+            "-fx-background-color: #e9e4d9;" +
             "-fx-border-color: #8B5C2A; -fx-border-width: 3px; -fx-border-radius: 16px;" +
             "-fx-background-radius: 16px;" +
             "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
@@ -581,7 +580,7 @@ public class InterfaceJogo {
 
         VBox box = new VBox(10, titulo, separador, scroll);
         box.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);" +
+            "-fx-background-color: #e9e4d9;" +
             "-fx-padding: 18px 18px 18px 18px;" +
             "-fx-border-radius: 16px; -fx-background-radius: 16px;" +
             "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
@@ -589,12 +588,97 @@ public class InterfaceJogo {
 
         alert.getDialogPane().setContent(box);
         alert.getDialogPane().setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); " +
+            "-fx-background-color: #e9e4d9; " +
             "-fx-font-size: 15px; -fx-font-family: 'Segoe UI', sans-serif; " +
             "-fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 14px;" +
             "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
         );
         alert.showAndWait();
+    }
+
+    private void mostrarPopupVencedor() {
+        jogoTerminou = true;
+        int pretas = tabuleiro.contarPecas('B');
+        int brancas = tabuleiro.contarPecas('W');
+        String vencedor;
+        String corVencedor;
+        if (pretas > brancas) {
+            vencedor = (minhaCor == 'B' ? nomeJogadorLocal : nomeJogadorAdversario);
+            corVencedor = "Pretas";
+        } else if (brancas > pretas) {
+            vencedor = (minhaCor == 'W' ? nomeJogadorLocal : nomeJogadorAdversario);
+            corVencedor = "Brancas";
+        } else {
+            vencedor = "Empate!";
+            corVencedor = "";
+        }
+
+        Stage popup = new Stage();
+        popup.initOwner(stage);
+
+        VBox box = new VBox(24);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(40, 54, 40, 54));
+        box.setStyle(
+            "-fx-background-color: #e9e4d9;" +
+            "-fx-border-color: #8B5C2A; -fx-border-width: 4px; -fx-border-radius: 22px;" +
+            "-fx-background-radius: 22px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A99, 28, 0.25, 0, 8);"
+        );
+
+        Label titulo = new Label("Fim do Jogo");
+        titulo.setStyle("-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A; -fx-effect: dropshadow(gaussian, #e9e4d9, 2, 0.1, 0, 1);");
+
+        Label resultado = new Label();
+        resultado.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #222; -fx-padding: 0 0 12 0;");
+
+        if (pretas == brancas) {
+            resultado.setText("Empate!\nAmbos terminaram com " + pretas + " peças.");
+        } else {
+            resultado.setText("Vencedor: " + vencedor + " (" + corVencedor + ")\n\n" +
+                "Pretas: " + pretas + "   |   Brancas: " + brancas);
+        }
+
+        Button fecharBtn = new Button("Voltar ao Início");
+        fecharBtn.setStyle(
+            "-fx-background-color: #c2a477; -fx-text-fill: #8B5C2A; -fx-font-size: 19px; -fx-font-weight: bold;" +
+            "-fx-background-radius: 16px; -fx-pref-width: 210px; -fx-pref-height: 50px; " +
+            "-fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
+        );
+        fecharBtn.setOnMouseEntered(e -> fecharBtn.setStyle(
+            "-fx-background-color: #8B5C2A; -fx-text-fill: #e9e4d9; -fx-font-size: 19px; -fx-font-weight: bold;" +
+            "-fx-background-radius: 16px; -fx-pref-width: 210px; -fx-pref-height: 50px; " +
+            "-fx-effect: dropshadow(gaussian, #c2a477, 2, 0, 0, 1);"
+        ));
+        fecharBtn.setOnMouseExited(e -> fecharBtn.setStyle(
+            "-fx-background-color: #c2a477; -fx-text-fill: #8B5C2A; -fx-font-size: 19px; -fx-font-weight: bold;" +
+            "-fx-background-radius: 16px; -fx-pref-width: 210px; -fx-pref-height: 50px; " +
+            "-fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
+        ));
+
+        fecharBtn.setOnAction(e -> {
+            try {
+                if (saida != null) saida.println("SAIR");
+                if (socket != null) socket.close();
+            } catch (IOException ex) {}
+            popup.close();
+            Platform.runLater(this::mostrarJanelaConexao);
+        });
+
+        box.getChildren().addAll(titulo, resultado, fecharBtn);
+
+        Scene cena = new Scene(box);
+        popup.setScene(cena);
+        popup.setTitle("Resultado Final");
+        popup.setResizable(false);
+
+        // Fade-in animation
+        box.setOpacity(0);
+        popup.show();
+        javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(javafx.util.Duration.millis(500), box);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
     }
 
     private double getCellSize() {
@@ -611,7 +695,7 @@ public class InterfaceJogo {
 
         // Efeito de sombra e borda mais suave no tabuleiro
         tabuleiroPane.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #a67c52 80%, #e9e4d9 100%);" +
+            "-fx-background-color: #e9e4d9;" +
             "-fx-border-color: #8B5C2A; -fx-border-width: 3px; -fx-border-radius: 16px;" +
             "-fx-background-radius: 16px;" +
             "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
