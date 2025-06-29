@@ -144,9 +144,12 @@ public class ServidorReversi {
 
                                 } else if (linha.startsWith("SAIR")) {
                                     System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
-                                    jogadores.get(jogadorAtual).println("SAIU");
+                                    try {
+                                        jogadores.get(jogadorAtual).println("SAIU");
+                                    } catch (Exception ex) {}
                                     removerJogador(jogadorAtual);
                                     jogoAtivo = false;
+                                    // Não termina o servidor, apenas termina o jogo atual
                                     break;
                                 }
                             } catch (SocketTimeoutException ste) {
@@ -158,8 +161,10 @@ public class ServidorReversi {
                                 break;
                             } catch (IOException ex) {
                                 // Erro de leitura: trata como desconexão
+                                System.out.println("Jogador desconectado.");
                                 removerJogador(i);
                                 jogoAtivo = false;
+                                // Não termina o servidor, apenas termina o jogo atual
                                 break;
                             }
                         }
@@ -172,6 +177,12 @@ public class ServidorReversi {
                 for (Socket s : sockets) {
                     try { s.close(); } catch (IOException ex) { }
                 }
+                // Limpa listas para garantir novo ciclo limpo
+                jogadores.clear();
+                entradas.clear();
+                nomes.clear();
+                sockets.clear();
+                jogadorAtual = 0;
                 System.out.println("Jogo terminado ou jogador saiu. Reiniciando espera por jogadores...");
             }
 
