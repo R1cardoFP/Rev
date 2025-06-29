@@ -11,7 +11,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -25,10 +24,11 @@ import java.io.*;
 import java.net.Socket;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.Pane;
 
 public class InterfaceJogo {
     private final Stage stage;
-    private final GridPane grelha;
+    private final Pane tabuleiroPane; // Substitui o GridPane grelha
     private final Tabuleiro tabuleiro;
     private final Label temporizadorLabel;
     private Timeline temporizador;
@@ -61,10 +61,10 @@ public class InterfaceJogo {
 
     public InterfaceJogo(Stage stage) {
         this.stage = stage;
-        this.grelha = new GridPane();
+        this.tabuleiroPane = new Pane();
         this.tabuleiro = new Tabuleiro();
         this.temporizadorLabel = new Label("");
-        grelha.setGridLinesVisible(false);
+        // grelha removido
     }
 
     public void mostrar() {
@@ -355,48 +355,96 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-        // Tabuleiro com fundo padrão e centrado
-        grelha.setMinSize(400, 400);
-        grelha.setMaxSize(400, 400);
-        grelha.setPrefSize(400, 400);
+        // Substituir grelha por tabuleiroPane
+        tabuleiroPane.setMinSize(416, 416);
+        tabuleiroPane.setMaxSize(416, 416);
+        tabuleiroPane.setPrefSize(416, 416);
 
-        VBox centro = new VBox(grelha);
+        VBox centro = new VBox(tabuleiroPane);
         centro.setAlignment(Pos.CENTER);
 
         // Chat ao lado do tabuleiro
         VBox chatBox = new VBox(8);
-        chatBox.setPadding(new Insets(10));
+        chatBox.setPadding(new Insets(16, 16, 16, 16));
         chatBox.setAlignment(Pos.TOP_CENTER);
-        chatBox.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 10px; -fx-background-radius: 10px;");
-        chatBox.setPrefWidth(260);
+        chatBox.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #f6f3ee 80%, #e9e4d9 100%);" +
+            "-fx-border-color: #8B5C2A; -fx-border-width: 2.5px; " +
+            "-fx-border-radius: 16px; -fx-background-radius: 16px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A55, 14, 0.18, 0, 3);"
+        );
+        chatBox.setPrefWidth(270);
 
         Label chatTitulo = new Label("Chat");
-        chatTitulo.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A;");
+        chatTitulo.setStyle(
+            "-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-fill: #8B5C2A;" +
+            "-fx-padding: 0 0 8 0; -fx-effect: dropshadow(gaussian, #e9e4d9, 2, 0.1, 0, 1);"
+        );
 
         chatArea = new TextArea();
         chatArea.setEditable(false);
         chatArea.setWrapText(true);
         chatArea.setPrefHeight(320);
-        chatArea.setStyle("-fx-font-size: 14px; -fx-control-inner-background: #f9f9f9;");
+        chatArea.setStyle(
+            "-fx-font-size: 15px;" +
+            "-fx-control-inner-background: #f9f7f3;" +
+            "-fx-background-color: #f9f7f3;" +
+            "-fx-border-color: #c2a477;" +
+            "-fx-border-width: 1.5px;" +
+            "-fx-border-radius: 10px;" +
+            "-fx-background-radius: 10px;" +
+            "-fx-text-fill: #333;"
+        );
 
-        HBox chatInputBox = new HBox(6);
+        HBox chatInputBox = new HBox(8);
+        chatInputBox.setAlignment(Pos.CENTER);
+
         chatInput = new TextField();
         chatInput.setPromptText("Escreva uma mensagem...");
         chatInput.setPrefWidth(150);
+        chatInput.setStyle(
+            "-fx-font-size: 15px;" +
+            "-fx-background-radius: 8px;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-border-color: #c2a477;" +
+            "-fx-border-width: 1.2px;" +
+            "-fx-background-color: #f9f7f3;" +
+            "-fx-text-fill: #333;"
+        );
+
         chatSendBtn = new Button("Enviar");
-        chatSendBtn.setStyle("-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px;");
+        chatSendBtn.setStyle(
+            "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold;" +
+            "-fx-font-size: 15px; -fx-background-radius: 8px;" +
+            "-fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
+        );
+        chatSendBtn.setOnMouseEntered(e -> chatSendBtn.setStyle(
+            "-fx-background-color: #FFD700; -fx-text-fill: #8B5C2A; -fx-font-weight: bold;" +
+            "-fx-font-size: 15px; -fx-background-radius: 8px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A, 2, 0, 0, 1);"
+        ));
+        chatSendBtn.setOnMouseExited(e -> chatSendBtn.setStyle(
+            "-fx-background-color: #8B5C2A; -fx-text-fill: white; -fx-font-weight: bold;" +
+            "-fx-font-size: 15px; -fx-background-radius: 8px;" +
+            "-fx-effect: dropshadow(gaussian, #b0b0b0, 2, 0, 0, 1);"
+        ));
 
         chatInputBox.getChildren().addAll(chatInput, chatSendBtn);
 
-        chatBox.getChildren().addAll(chatTitulo, chatArea, chatInputBox);
+        chatBox.getChildren().setAll(chatTitulo, chatArea, chatInputBox);
 
         // Layout principal: tabuleiro à esquerda, chat à direita, com mais espaço entre eles
-        HBox conteudo = new HBox(40, centro, chatBox); // Espaço aumentado para 40
+        HBox conteudo = new HBox(40, new VBox(tabuleiroPane), chatBox);
         conteudo.setAlignment(Pos.CENTER);
         conteudo.setPadding(new Insets(20, 0, 20, 0));
         root.setCenter(conteudo);
 
-        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
+        tabuleiroPane.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #a67c52 80%, #e9e4d9 100%);" +
+            "-fx-border-color: #8B5C2A; -fx-border-width: 3px; -fx-border-radius: 16px;" +
+            "-fx-background-radius: 16px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
+        );
 
         Scene cenaJogo = new Scene(root, 760, 650);
         stage.setScene(cenaJogo);
@@ -405,10 +453,9 @@ public class InterfaceJogo {
 
         atualizarTabuleiro();
 
-        grelha.setOnMouseClicked(e -> {
+        tabuleiroPane.setOnMouseClicked(e -> {
             if (!meuTurno) return;
             double cellSize = getCellSize();
-            // Corrige o cálculo da posição do clique para garantir que está dentro do tabuleiro
             int coluna = (int) (e.getX() / cellSize);
             int linha = (int) (e.getY() / cellSize);
             if (linha < 0 || linha > 7 || coluna < 0 || coluna > 7) return;
@@ -487,87 +534,132 @@ public class InterfaceJogo {
         alert.setTitle("Regras do Reversi");
         alert.setHeaderText(null);
 
-        // HTML-like format para melhor apresentação
+        // Título estilizado sem emoji
+        Label titulo = new Label("Regras do Reversi");
+        titulo.setStyle(
+            "-fx-font-size: 22px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #8B5C2A;" +
+            "-fx-padding: 0 0 10 0;"
+        );
+
+        // Regras detalhadas do Reversi (sem emojis)
         String regras =
-            " <b>Objetivo:</b> Ter mais peças da sua cor no final do jogo.<br><br>" +
-            " <b>Regras:</b><br>" +
-            " 1. Só pode jogar onde capturar pelo menos uma peça adversária.<br>" +
-            " 2. As peças capturadas mudam para a sua cor.<br>" +
-            " 3. O jogo termina quando não há mais jogadas possíveis.<br><br>" +
-            " <b>Dica:</b> Tente controlar os cantos do tabuleiro!";
+            "Objetivo:\n" +
+            "  O objetivo do Reversi é terminar o jogo com mais peças da sua cor no tabuleiro do que o adversário.\n\n" +
+            "Regras:\n" +
+            "  1. O jogo começa com 4 peças no centro do tabuleiro (2 pretas e 2 brancas).\n" +
+            "  2. Os jogadores jogam alternadamente, colocando uma peça da sua cor em uma casa vazia.\n" +
+            "  3. Cada jogada deve capturar pelo menos uma peça do adversário. Isso acontece quando a peça colocada forma uma linha (horizontal, vertical ou diagonal) com outra peça da sua cor, tendo apenas peças do adversário entre elas.\n" +
+            "  4. Todas as peças do adversário entre as duas peças da sua cor são viradas para a sua cor.\n" +
+            "  5. Se um jogador não puder fazer uma jogada válida, ele passa a vez.\n" +
+            "  6. O jogo termina quando nenhum dos jogadores pode jogar (tabuleiro cheio ou nenhum movimento possível).\n\n" +
+            "Dicas:\n" +
+            "  • Tente conquistar os cantos do tabuleiro, pois são posições estratégicas.\n" +
+            "  • Evite dar ao adversário a chance de jogar nos cantos.\n" +
+            "  • Planeje suas jogadas para maximizar o número de peças capturadas e limitar as opções do adversário.\n";
 
-        // Usar um Label estilizado para simular HTML
-        Label regrasLabel = new Label();
-        regrasLabel.setText("Objetivo:\n  Ter mais peças da sua cor no final do jogo.\n\n" +
-                "Regras:\n" +
-                "  1. Só pode jogar onde capturar pelo menos uma peça adversária.\n" +
-                "  2. As peças capturadas mudam para a sua cor.\n" +
-                "  3. O jogo termina quando não há mais jogadas possíveis.\n\n" +
-                "Dica: Tente controlar os cantos do tabuleiro!");
-        regrasLabel.setStyle("-fx-font-size: 15px; -fx-font-family: 'Segoe UI', sans-serif; -fx-padding: 10 0 0 0;");
+        Label regrasLabel = new Label(regras);
+        regrasLabel.setStyle(
+            "-fx-font-size: 15px;" +
+            "-fx-font-family: 'Segoe UI', sans-serif;" +
+            "-fx-text-fill: #333;" +
+            "-fx-padding: 0 0 0 0;"
+        );
+        regrasLabel.setWrapText(true);
 
-        alert.getDialogPane().setContent(regrasLabel);
+        // Separador visual
+        javafx.scene.shape.Line separador = new javafx.scene.shape.Line(0, 0, 400, 0);
+        separador.setStroke(Color.web("#8B5C2A"));
+        separador.setStrokeWidth(1.5);
+
+        // Scroll para regras longas
+        ScrollPane scroll = new ScrollPane(regrasLabel);
+        scroll.setFitToWidth(true);
+        scroll.setPrefViewportHeight(260);
+        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        VBox box = new VBox(10, titulo, separador, scroll);
+        box.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #f6f3ee, #e9e4d9);" +
+            "-fx-padding: 18px 18px 18px 18px;" +
+            "-fx-border-radius: 16px; -fx-background-radius: 16px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
+        );
+
+        alert.getDialogPane().setContent(box);
         alert.getDialogPane().setStyle(
             "-fx-background-color: linear-gradient(to bottom, #ece9e6, #ffffff); " +
             "-fx-font-size: 15px; -fx-font-family: 'Segoe UI', sans-serif; " +
-            "-fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 10px;"
+            "-fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 14px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
         );
         alert.showAndWait();
     }
 
     private double getCellSize() {
-        // Calcula dinamicamente o tamanho da célula com base no tamanho real do grid
-        double largura = grelha.getWidth() > 0 ? grelha.getWidth() : grelha.getPrefWidth();
-        double altura = grelha.getHeight() > 0 ? grelha.getHeight() : grelha.getPrefHeight();
+        double largura = tabuleiroPane.getWidth() > 0 ? tabuleiroPane.getWidth() : tabuleiroPane.getPrefWidth();
+        double altura = tabuleiroPane.getHeight() > 0 ? tabuleiroPane.getHeight() : tabuleiroPane.getPrefHeight();
         return Math.min(largura, altura) / 8.0;
     }
 
+
     private void atualizarTabuleiro() {
-        grelha.getChildren().clear();
+        tabuleiroPane.getChildren().clear();
         double cellSize = getCellSize();
         boolean mostrarPossiveis = meuTurno;
 
+        // Efeito de sombra e borda mais suave no tabuleiro
+        tabuleiroPane.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #a67c52 80%, #e9e4d9 100%);" +
+            "-fx-border-color: #8B5C2A; -fx-border-width: 3px; -fx-border-radius: 16px;" +
+            "-fx-background-radius: 16px;" +
+            "-fx-effect: dropshadow(gaussian, #8B5C2A55, 18, 0.2, 0, 4);"
+        );
+
+        // Desenha as casas
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
-                // Casas alternadas: cinzento e castanho
+                r.setX(coluna * cellSize);
+                r.setY(linha * cellSize);
+                // Cores suaves para o tabuleiro
                 if ((linha + coluna) % 2 == 0) {
-                    r.setFill(Color.web("#B0B0B0"));
+                    r.setFill(Color.web("#e9e4d9"));
                 } else {
-                    r.setFill(Color.web("#8B5C2A"));
+                    r.setFill(Color.web("#c2a477"));
                 }
-                r.setArcWidth(cellSize * 0.24);
-                r.setArcHeight(cellSize * 0.24);
-                r.setStroke(Color.web("#333"));
-                r.setStrokeWidth(cellSize * 0.025);
-                grelha.add(r, coluna, linha);
+                r.setArcWidth(cellSize * 0.25);
+                r.setArcHeight(cellSize * 0.25);
+                r.setStroke(Color.web("#8B5C2A"));
+                r.setStrokeWidth(1.2);
+                tabuleiroPane.getChildren().add(r);
 
                 char peca = tabuleiro.getPeca(linha, coluna);
                 if (peca != '-') {
-                    Circle c = new Circle(cellSize * 0.4);
-                    c.setFill(peca == 'B' ? Color.BLACK : Color.WHITE);
-                    c.setStroke(Color.web("#555"));
+                    double raio = cellSize * 0.4;
+                    Circle c = new Circle(r.getX() + cellSize / 2, r.getY() + cellSize / 2, raio);
+                    c.setFill(peca == 'B' ? Color.web("#222") : Color.web("#fff"));
+                    c.setStroke(Color.web("#8B5C2A"));
                     c.setStrokeWidth(cellSize * 0.09);
-                    GridPane.setMargin(c, new Insets((cellSize - c.getRadius() * 2) / 2));
-                    grelha.add(c, coluna, linha);
+                    tabuleiroPane.getChildren().add(c);
                 } else if (mostrarPossiveis && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
-                    // Só mostra hitbox se for o turno do jogador
-                    double size = cellSize * 0.4;
-                    Rectangle highlight = new Rectangle(size, size);
-                    highlight.setFill(Color.web("#FFD700"));
-                    highlight.setArcWidth(size * 0.18);
-                    highlight.setArcHeight(size * 0.18);
-                    GridPane.setMargin(highlight, new Insets((cellSize - size) / 2));
-                    grelha.add(highlight, coluna, linha);
+                    double raioHitbox = cellSize * 0.44;
+                    Circle hitbox = new Circle(r.getX() + cellSize / 2, r.getY() + cellSize / 2, raioHitbox);
+                    hitbox.setFill(Color.web("#FFD700", 0.33));
+                    hitbox.setStroke(Color.web("#FFD700"));
+                    hitbox.setStrokeWidth(cellSize * 0.06);
+                    tabuleiroPane.getChildren().add(hitbox);
 
+                    // Animação de destaque para jogada selecionada
                     if (linha == jogadaLinha && coluna == jogadaColuna) {
-                        Circle fadePeca = new Circle(cellSize * 0.4);
-                        fadePeca.setFill(minhaCor == 'B' ? Color.BLACK : Color.WHITE);
-                        fadePeca.setOpacity(0.4);
-                        fadePeca.setStroke(Color.web("#555"));
-                        fadePeca.setStrokeWidth(cellSize * 0.09);
-                        GridPane.setMargin(fadePeca, new Insets((cellSize - fadePeca.getRadius() * 2) / 2));
-                        grelha.add(fadePeca, coluna, linha);
+                        double raioFade = cellSize * 0.4;
+                        Circle fadePeca = new Circle(r.getX() + cellSize / 2, r.getY() + cellSize / 2, raioFade);
+                        fadePeca.setFill(minhaCor == 'B' ? Color.web("#222") : Color.web("#fff"));
+                        fadePeca.setOpacity(0.55);
+                        fadePeca.setStroke(Color.web("#FFD700"));
+                        fadePeca.setStrokeWidth(cellSize * 0.13);
+                        tabuleiroPane.getChildren().add(fadePeca);
                     }
                 }
             }
