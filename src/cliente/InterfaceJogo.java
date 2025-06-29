@@ -56,6 +56,9 @@ public class InterfaceJogo {
     private Label nomesJogadoresLabel;
     private Label contagemPecasLabel;
 
+    // Novo campo para controlar se pode mostrar as hitbox das jogadas possíveis
+    private boolean podeMostrarJogadas = true;
+
     public InterfaceJogo(Stage stage) {
         this.stage = stage;
         this.grelha = new GridPane();
@@ -216,11 +219,23 @@ public class InterfaceJogo {
                                 Platform.runLater(this::mostrarJanelaJogo);
                             } else if (msg.startsWith("JOGADA")) {
                                 String[] partes = msg.split(" ");
-                                int linha = Integer.parseInt(partes[1]);
-                                int coluna = Integer.parseInt(partes[2]);
-                                char corJogada = partes[3].charAt(0);
-                                tabuleiro.jogar(linha, coluna, corJogada);
-                                Platform.runLater(this::atualizarTabuleiro);
+                                if (partes.length >= 4) { // Proteção contra mensagens mal formatadas
+                                    int linha = Integer.parseInt(partes[1]);
+                                    int coluna = Integer.parseInt(partes[2]);
+                                    char corJogada = partes[3].charAt(0);
+                                    tabuleiro.jogar(linha, coluna, corJogada);
+                                    Platform.runLater(this::atualizarTabuleiro);
+                                }
+                            } else if (msg.equals("JOGADA_CONFIRMADA")) {
+                                // Jogada confirmada pelo servidor, nada a fazer (pode usar para feedback)
+                            } else if (msg.equals("JOGADA_INVALIDA")) {
+                                // Jogada inválida, reativa o turno e hitbox
+                                meuTurno = true;
+                                podeMostrarJogadas = true;
+                                Platform.runLater(() -> {
+                                    mostrarAlertaBonito("Jogada inválida", "A jogada não é válida. Tente novamente.", Alert.AlertType.WARNING);
+                                    atualizarTabuleiro();
+                                });
                             } else if (msg.equals("FIM")) {
                                 pararTemporizador();
                                 Platform.runLater(() -> {
@@ -233,6 +248,9 @@ public class InterfaceJogo {
                                 });
                             } else if (msg.equals("SUA_VEZ")) {
                                 meuTurno = true;
+                                podeMostrarJogadas = true; // Permite mostrar hitbox novamente no novo turno
+                                jogadaLinha = -1;
+                                jogadaColuna = -1;
                                 iniciarTemporizador();
                                 Platform.runLater(this::atualizarTabuleiro);
                             } else if (msg.startsWith("NOME_ADVERSARIO ")) {
@@ -240,7 +258,6 @@ public class InterfaceJogo {
                                 Platform.runLater(this::atualizarCabecalhoJogadores);
                             } else if (msg.startsWith("CHAT ")) {
                                 String chatMsg = msg.substring(5);
-                                // Só adiciona se não for a última mensagem local (evita duplicação)
                                 Platform.runLater(() -> {
                                     if (!chatMsg.startsWith(nomeJogadorLocal + ":")) {
                                         adicionarMensagemChat(chatMsg);
@@ -338,19 +355,13 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-        // Configuração da grelha (tabuleiro)
-        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
+        // Tabuleiro com fundo padrão e centrado
         grelha.setMinSize(400, 400);
         grelha.setMaxSize(400, 400);
         grelha.setPrefSize(400, 400);
 
-        // Contêiner para o tabuleiro, centrado
-        HBox tabuleiroContainer = new HBox();
-        tabuleiroContainer.setAlignment(Pos.CENTER);
-        tabuleiroContainer.getChildren().add(grelha);
-        tabuleiroContainer.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
-        root.setCenter(tabuleiroContainer);
-
+        VBox centro = new VBox(grelha);
+        centro.setAlignment(Pos.CENTER);
 
         // Chat ao lado do tabuleiro
         VBox chatBox = new VBox(8);
@@ -380,7 +391,7 @@ public class InterfaceJogo {
         chatBox.getChildren().addAll(chatTitulo, chatArea, chatInputBox);
 
         // Layout principal: tabuleiro à esquerda, chat à direita, com mais espaço entre eles
-        HBox conteudo = new HBox(40, tabuleiroContainer, chatBox); // Espaço aumentado para 40
+        HBox conteudo = new HBox(40, centro, chatBox); // Espaço aumentado para 40
         conteudo.setAlignment(Pos.CENTER);
         conteudo.setPadding(new Insets(20, 0, 20, 0));
         root.setCenter(conteudo);
@@ -396,9 +407,11 @@ public class InterfaceJogo {
 
         grelha.setOnMouseClicked(e -> {
             if (!meuTurno) return;
-            double cellSize = 400.0 / 8.0;
+            double cellSize = getCellSize();
+            // Corrige o cálculo da posição do clique para garantir que está dentro do tabuleiro
             int coluna = (int) (e.getX() / cellSize);
             int linha = (int) (e.getY() / cellSize);
+            if (linha < 0 || linha > 7 || coluna < 0 || coluna > 7) return;
             if (tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
                 jogadaLinha = linha;
                 jogadaColuna = coluna;
@@ -413,6 +426,7 @@ public class InterfaceJogo {
             if (!meuTurno) return;
             if (jogadaLinha != -1 && jogadaColuna != -1) {
                 meuTurno = false; // Impede novas jogadas até receber SUA_VEZ do servidor
+                podeMostrarJogadas = false; // Não mostra hitbox até o próximo turno
                 saida.println("JOGADA " + jogadaLinha + " " + jogadaColuna);
                 pararTemporizador();
                 jogadaLinha = -1;
@@ -502,23 +516,25 @@ public class InterfaceJogo {
     }
 
     private double getCellSize() {
-        // Tamanho fixo do tabuleiro
-        return 400.0 / 8.0;
+        // Calcula dinamicamente o tamanho da célula com base no tamanho real do grid
+        double largura = grelha.getWidth() > 0 ? grelha.getWidth() : grelha.getPrefWidth();
+        double altura = grelha.getHeight() > 0 ? grelha.getHeight() : grelha.getPrefHeight();
+        return Math.min(largura, altura) / 8.0;
     }
 
     private void atualizarTabuleiro() {
         grelha.getChildren().clear();
         double cellSize = getCellSize();
-        boolean mostrarPossiveis = meuTurno; // Só mostra hitbox se for o turno do jogador
+        boolean mostrarPossiveis = meuTurno;
 
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
-
+                // Casas alternadas: cinzento e castanho
                 if ((linha + coluna) % 2 == 0) {
-                    r.setFill(Color.web("#B0B0B0")); // Cor padrão para casas claras
+                    r.setFill(Color.web("#B0B0B0"));
                 } else {
-                    r.setFill(Color.web("#8B5C2A")); // Cor padrão para casas escuras
+                    r.setFill(Color.web("#8B5C2A"));
                 }
                 r.setArcWidth(cellSize * 0.24);
                 r.setArcHeight(cellSize * 0.24);
@@ -532,25 +548,22 @@ public class InterfaceJogo {
                     c.setFill(peca == 'B' ? Color.BLACK : Color.WHITE);
                     c.setStroke(Color.web("#555"));
                     c.setStrokeWidth(cellSize * 0.09);
-                    // Centralizar a peça na célula
                     GridPane.setMargin(c, new Insets((cellSize - c.getRadius() * 2) / 2));
                     grelha.add(c, coluna, linha);
                 } else if (mostrarPossiveis && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
-                    // Quadrado pequeno, centrado na célula e nunca fora do tabuleiro
+                    // Só mostra hitbox se for o turno do jogador
                     double size = cellSize * 0.4;
                     Rectangle highlight = new Rectangle(size, size);
-                    highlight.setFill(Color.web("#FFD700")); // Amarelo sólido
+                    highlight.setFill(Color.web("#FFD700"));
                     highlight.setArcWidth(size * 0.18);
                     highlight.setArcHeight(size * 0.18);
-                    // Centralizar o quadrado pequeno na célula usando margens do GridPane
                     GridPane.setMargin(highlight, new Insets((cellSize - size) / 2));
                     grelha.add(highlight, coluna, linha);
 
-                    // Se esta é a posição selecionada, mostra um fade da peça
                     if (linha == jogadaLinha && coluna == jogadaColuna) {
                         Circle fadePeca = new Circle(cellSize * 0.4);
                         fadePeca.setFill(minhaCor == 'B' ? Color.BLACK : Color.WHITE);
-                        fadePeca.setOpacity(0.4); // Fade
+                        fadePeca.setOpacity(0.4);
                         fadePeca.setStroke(Color.web("#555"));
                         fadePeca.setStrokeWidth(cellSize * 0.09);
                         GridPane.setMargin(fadePeca, new Insets((cellSize - fadePeca.getRadius() * 2) / 2));
@@ -571,6 +584,8 @@ public class InterfaceJogo {
     }
 
     private void atualizarCabecalhoJogadores() {
+        // Só tenta atualizar se o label já foi criado
+        if (nomesJogadoresLabel == null) return;
         String corLocal = minhaCor == 'B' ? "Pretas" : "Brancas";
         String corAdv = minhaCor == 'B' ? "Brancas" : "Pretas";
         nomesJogadoresLabel.setText(
@@ -591,6 +606,7 @@ public class InterfaceJogo {
 
         temporizador = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             tempoRestante--;
+
             if (tempoRestante <= 0) {
                 pararTemporizador();
                 meuTurno = false;

@@ -13,130 +13,148 @@ public class ServidorReversi {
     private static final ArrayList<PrintWriter> jogadores = new ArrayList<>();
     private static final ArrayList<BufferedReader> entradas = new ArrayList<>();
     private static final ArrayList<String> nomes = new ArrayList<>();
+    private static final ArrayList<Socket> sockets = new ArrayList<>(); // Para fechar conexões
     private static final char[] cores = {'B', 'W'};
     private static int jogadorAtual = 0;
 
     public static void main(String[] args) {
-        String ipManual = "192.168.1.144"; // <- Define aqui o IP
-        int porta = 12345;
+        String ipManual = "192.168.1.138"; // <- Define aqui o IP
+        int porta = 2025;
 
         try (ServerSocket serverSocket = new ServerSocket(porta, 0, InetAddress.getByName(ipManual))) {
             System.out.println("Servidor Reversi a correr em " + ipManual + ":" + porta);
-            System.out.println("À escuta de clientes...");
-
-            while (jogadores.size() < 2) {
-                Socket cliente = serverSocket.accept();
-                System.out.println("Jogador ligado.");
-                PrintWriter out = new PrintWriter(cliente.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
-                jogadores.add(out);
-                entradas.add(in);
-
-                // Recebe o nome do jogador
-                String nome = in.readLine();
-                if (nome == null || nome.isEmpty()) nome = "Jogador" + jogadores.size();
-                nomes.add(nome);
-
-                out.println(cores[jogadores.size() - 1]); // Envia cor ao jogador
-                // Não enviar já o nome do adversário!
-            }
-
-            // Agora que ambos estão ligados, enviar o nome do adversário para cada um
-            jogadores.get(0).println("NOME_ADVERSARIO " + nomes.get(1));
-            jogadores.get(1).println("NOME_ADVERSARIO " + nomes.get(0));
-
-            enviarMensagemATodos("COMEÇAR");
-            tabuleiro.inicializar();
-            jogadores.get(jogadorAtual).println("SUA_VEZ");
-
-            boolean[] jogadorPulou = new boolean[2]; // Para controlar se o jogador deve pular o turno
 
             while (true) {
-                PrintWriter atual = jogadores.get(jogadorAtual);
-                BufferedReader entradaAtual = entradas.get(jogadorAtual);
+                // Limpa listas para novo jogo
+                jogadores.clear();
+                entradas.clear();
+                nomes.clear();
+                sockets.clear();
+                jogadorAtual = 0;
 
-                String linha = entradaAtual.readLine();
-                if (linha == null) break;
+                System.out.println("À escuta de clientes...");
 
-                if (linha.startsWith("JOGADA")) {
-                    String[] partes = linha.split(" ");
-                    int x = Integer.parseInt(partes[1]);
-                    int y = Integer.parseInt(partes[2]);
-                    char cor = cores[jogadorAtual];
+                // Espera por dois jogadores
+                while (jogadores.size() < 2) {
+                    Socket cliente = serverSocket.accept();
+                    System.out.println("Jogador ligado.");
+                    PrintWriter out = new PrintWriter(cliente.getOutputStream(), true);
+                    BufferedReader in = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
+                    jogadores.add(out);
+                    entradas.add(in);
+                    sockets.add(cliente);
 
-                    // Só processa a jogada se for o turno correto!
-                    if (tabuleiro.jogadaValida(x, y, cor)) {
-                        tabuleiro.jogar(x, y, cor);
-                        enviarJogadaParaJogadores(x, y, cor);
+                    String nome = in.readLine();
+                    if (nome == null || nome.isEmpty()) nome = "Jogador" + jogadores.size();
+                    nomes.add(nome);
 
-                        if (fimDeJogo()) {
-                            enviarMensagemATodos("FIM");
-                            break;
-                        } else {
-                            // Marca que este jogador deve pular o próximo turno
-                            jogadorPulou[jogadorAtual] = true;
-
-                            // Procura o próximo jogador que não deve pular o turno
-                            int tentativas = 0;
-                            do {
-                                jogadorAtual = (jogadorAtual + 1) % 2;
-                                tentativas++;
-                            } while (jogadorPulou[jogadorAtual] && tentativas < 2);
-
-                            // Se ambos devem pular, reseta os flags e segue normalmente
-                            if (jogadorPulou[0] && jogadorPulou[1]) {
-                                jogadorPulou[0] = false;
-                                jogadorPulou[1] = false;
-                            }
-
-                            enviarMensagemATodos("SUA_VEZ");
-                        }
-                    }
-                } else if (linha.equals("TEMPO_ESGOTADO")) {
-                    // Marca que este jogador deve pular o próximo turno
-                    jogadorPulou[jogadorAtual] = true;
-
-                    // Procura o próximo jogador que não deve pular o turno
-                    int tentativas = 0;
-                    do {
-                        jogadorAtual = (jogadorAtual + 1) % 2;
-                        tentativas++;
-                    } while (jogadorPulou[jogadorAtual] && tentativas < 2);
-
-                    // Se ambos devem pular, reseta os flags e segue normalmente
-                    if (jogadorPulou[0] && jogadorPulou[1]) {
-                        jogadorPulou[0] = false;
-                        jogadorPulou[1] = false;
-                    }
-
-                    enviarMensagemATodos("SUA_VEZ");
-                } else if (linha.startsWith("CHAT ")) {
-                    // Retransmitir mensagem de chat para ambos (garante que todos veem, inclusive quem enviou)
-                    for (PrintWriter p : jogadores) {
-                        p.println(linha);
-                    }
-                } else if (linha.startsWith("SAIR")) {
-                    System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo."); // Mensagem no terminal
-                    jogadores.get(jogadorAtual).println("SAIU");
-                    jogadores.remove(jogadorAtual);
-                    entradas.remove(jogadorAtual);
-                    nomes.remove(jogadorAtual);
-
-                    if (jogadores.size() == 1) {
-                        jogadores.get(0).println("ESPERANDO");
-                    }
-
-                    if (jogadores.size() > 0) {
-                        jogadorAtual = jogadorAtual % jogadores.size();
-                    }
-                    continue;
+                    out.println(cores[jogadores.size() - 1]); // Envia cor
                 }
+
+                jogadores.get(0).println("NOME_ADVERSARIO " + nomes.get(1));
+                jogadores.get(1).println("NOME_ADVERSARIO " + nomes.get(0));
+
+                enviarMensagemATodos("COMEÇAR");
+                tabuleiro.inicializar();
+                jogadores.get(jogadorAtual).println("SUA_VEZ");
+
+                boolean jogoAtivo = true;
+                while (jogoAtivo) {
+                    boolean mensagemProcessada = false;
+
+                    while (!mensagemProcessada) {
+                        for (int i = 0; i < entradas.size(); i++) {
+                            if (i != jogadorAtual) continue;
+
+                            BufferedReader entrada = entradas.get(i);
+                            try {
+                                if (entrada.ready()) {
+                                    String linha = entrada.readLine();
+                                    if (linha == null) {
+                                        // Cliente desconectou
+                                        removerJogador(i);
+                                        jogoAtivo = false;
+                                        break;
+                                    }
+
+                                    PrintWriter atual = jogadores.get(jogadorAtual);
+
+                                    if (linha.startsWith("JOGADA")) {
+                                        String[] partes = linha.split(" ");
+                                        int x = Integer.parseInt(partes[1]);
+                                        int y = Integer.parseInt(partes[2]);
+                                        char cor = cores[jogadorAtual];
+
+                                        if (tabuleiro.jogadaValida(x, y, cor)) {
+                                            tabuleiro.jogar(x, y, cor);
+                                            enviarJogadaParaJogadores(x, y, cor);
+                                            atual.println("JOGADA_CONFIRMADA");
+
+                                            if (fimDeJogo()) {
+                                                enviarMensagemATodos("FIM");
+                                                jogoAtivo = false;
+                                                break;
+                                            } else {
+                                                jogadorAtual = (jogadorAtual + 1) % 2;
+                                                jogadores.get(jogadorAtual).println("SUA_VEZ");
+                                            }
+                                        } else {
+                                            atual.println("JOGADA_INVALIDA");
+                                        }
+                                        mensagemProcessada = true;
+                                        break;
+
+                                    } else if (linha.equals("TEMPO_ESGOTADO")) {
+                                        jogadorAtual = (jogadorAtual + 1) % 2;
+                                        jogadores.get(jogadorAtual).println("SUA_VEZ");
+                                        mensagemProcessada = true;
+                                        break;
+
+                                    } else if (linha.startsWith("CHAT ")) {
+                                        for (PrintWriter p : jogadores) {
+                                            p.println(linha);
+                                        }
+
+                                    } else if (linha.startsWith("SAIR")) {
+                                        System.out.println("Jogador " + nomes.get(jogadorAtual) + " saiu do jogo.");
+                                        jogadores.get(jogadorAtual).println("SAIU");
+                                        removerJogador(jogadorAtual);
+                                        jogoAtivo = false;
+                                        break;
+                                    }
+                                }
+                            } catch (IOException ex) {
+                                // Erro de leitura: trata como desconexão
+                                removerJogador(i);
+                                jogoAtivo = false;
+                                break;
+                            }
+                        }
+                        try { Thread.sleep(20); } catch (InterruptedException e) { }
+                    }
+                }
+
+                // Fecha todas as conexões restantes
+                for (Socket s : sockets) {
+                    try { s.close(); } catch (IOException ex) { }
+                }
+                System.out.println("Jogo terminado ou jogador saiu. Reiniciando espera por jogadores...");
             }
 
         } catch (IOException e) {
             System.err.println("Erro no servidor: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private static void removerJogador(int idx) {
+        try {
+            if (sockets.size() > idx) sockets.get(idx).close();
+        } catch (IOException ex) { }
+        if (jogadores.size() > idx) jogadores.remove(idx);
+        if (entradas.size() > idx) entradas.remove(idx);
+        if (nomes.size() > idx) nomes.remove(idx);
+        if (sockets.size() > idx) sockets.remove(idx);
     }
 
     private static void enviarMensagemATodos(String msg) {
@@ -162,7 +180,6 @@ public class ServidorReversi {
         return true;
     }
 
-    // Adicione este método auxiliar:
     private static boolean jogadorTemJogada(int jogador) {
         char cor = cores[jogador];
         for (int i = 0; i < 8; i++)
