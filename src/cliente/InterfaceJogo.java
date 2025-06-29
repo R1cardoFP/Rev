@@ -406,11 +406,12 @@ public class InterfaceJogo {
         atualizarTabuleiro();
 
         grelha.setOnMouseClicked(e -> {
-            // Só permite selecionar jogada e ver hitbox se for o turno do jogador
             if (!meuTurno) return;
-            double cellSize = 400.0 / 8.0;
+            double cellSize = getCellSize();
+            // Corrige o cálculo da posição do clique para garantir que está dentro do tabuleiro
             int coluna = (int) (e.getX() / cellSize);
             int linha = (int) (e.getY() / cellSize);
+            if (linha < 0 || linha > 7 || coluna < 0 || coluna > 7) return;
             if (tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
                 jogadaLinha = linha;
                 jogadaColuna = coluna;
@@ -515,15 +516,16 @@ public class InterfaceJogo {
     }
 
     private double getCellSize() {
-        // Tamanho fixo do tabuleiro
-        return 400.0 / 8.0;
+        // Calcula dinamicamente o tamanho da célula com base no tamanho real do grid
+        double largura = grelha.getWidth() > 0 ? grelha.getWidth() : grelha.getPrefWidth();
+        double altura = grelha.getHeight() > 0 ? grelha.getHeight() : grelha.getPrefHeight();
+        return Math.min(largura, altura) / 8.0;
     }
 
     private void atualizarTabuleiro() {
         grelha.getChildren().clear();
         double cellSize = getCellSize();
-        // Só mostra hitbox se for o turno do jogador
-        boolean mostrarPossiveis = meuTurno; // <-- garantir que só mostra no seu turno
+        boolean mostrarPossiveis = meuTurno;
 
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
