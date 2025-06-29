@@ -153,6 +153,9 @@ public class InterfaceJogo {
                 return;
             }
 
+            // FECHA socket antigo se existir antes de tentar nova ligação
+            fecharSocket();
+
             ligarAoServidor(ip, porta, nomeJogador);
         });
     }
@@ -492,16 +495,19 @@ public class InterfaceJogo {
                 if (saida != null) {
                     saida.println("SAIR");
                 }
-                if (socket != null) {
-                    socket.close();
-                }
-            } catch (IOException ex) {
-                // Ignorar erros ao fechar
+            } catch (Exception ex) {
+                // Ignorar erros ao sair
             }
             meuTurno = false;
             pararTemporizador();
-            // Volta para a tela de conexão para procurar novo jogador no mesmo IP
-            Platform.runLater(this::mostrarJanelaConexao);
+            jogoTerminou = false;
+            jogadaLinha = -1;
+            jogadaColuna = -1;
+            Platform.runLater(() -> {
+                tabuleiro.inicializar();
+                fecharSocket(); // FECHA socket ao sair para garantir nova ligação limpa
+                mostrarJanelaConexao();
+            });
         });
 
         // Chat: enviar mensagem ao clicar ou pressionar Enter
@@ -659,10 +665,16 @@ public class InterfaceJogo {
         fecharBtn.setOnAction(e -> {
             try {
                 if (saida != null) saida.println("SAIR");
-                if (socket != null) socket.close();
-            } catch (IOException ex) {}
+            } catch (Exception ex) {}
             popup.close();
-            Platform.runLater(this::mostrarJanelaConexao);
+            jogoTerminou = false;
+            jogadaLinha = -1;
+            jogadaColuna = -1;
+            Platform.runLater(() -> {
+                tabuleiro.inicializar();
+                fecharSocket(); // FECHA socket ao voltar ao início para garantir nova ligação limpa
+                mostrarJanelaConexao();
+            });
         });
 
         box.getChildren().addAll(titulo, resultado, fecharBtn);
@@ -814,5 +826,20 @@ public class InterfaceJogo {
             "-fx-border-color: #8B5C2A; -fx-border-width: 2px; -fx-border-radius: 10px;"
         );
         alert.showAndWait();
+    }
+
+    private void fecharSocket() {
+        try {
+            if (entrada != null) entrada.close();
+        } catch (Exception e) {}
+        try {
+            if (saida != null) saida.close();
+        } catch (Exception e) {}
+        try {
+            if (socket != null && !socket.isClosed()) socket.close();
+        } catch (Exception e) {}
+        entrada = null;
+        saida = null;
+        socket = null;
     }
 }
