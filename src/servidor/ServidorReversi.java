@@ -21,7 +21,7 @@ public class ServidorReversi {
     public static void main(String[] args) {
 
         String ipManual = "192.168.1.144"; // <- Define aqui o IP
-        int porta = 2000;
+        int porta = 2025;
 
 
         try (ServerSocket serverSocket = new ServerSocket(porta, 0, InetAddress.getByName(ipManual))) {
