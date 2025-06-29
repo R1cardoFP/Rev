@@ -338,16 +338,16 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-        grelha.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
+        // Tabuleiro com fundo preto e centrado
         grelha.setMinSize(400, 400);
         grelha.setMaxSize(400, 400);
         grelha.setPrefSize(400, 400);
 
         HBox tabuleiroContainer = new HBox();
         tabuleiroContainer.setAlignment(Pos.CENTER);
+        tabuleiroContainer.setStyle("-fx-background-color: #000000; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
         tabuleiroContainer.getChildren().add(grelha);
-        tabuleiroContainer.setStyle("-fx-background-color: #8B5C2A; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
-        root.setCenter(tabuleiroContainer);
+
         VBox centro = new VBox(grelha);
         centro.setAlignment(Pos.CENTER);
 
@@ -379,7 +379,7 @@ public class InterfaceJogo {
         chatBox.getChildren().addAll(chatTitulo, chatArea, chatInputBox);
 
         // Layout principal: tabuleiro à esquerda, chat à direita
-        HBox conteudo = new HBox(20, centro, chatBox);
+        HBox conteudo = new HBox(20, tabuleiroContainer, chatBox);
         conteudo.setAlignment(Pos.CENTER);
         conteudo.setPadding(new Insets(20, 0, 20, 0));
         root.setCenter(conteudo);
@@ -511,6 +511,7 @@ public class InterfaceJogo {
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
+                // Casas alternadas: cinzento e castanho, fundo do tabuleiro é preto
                 if ((linha + coluna) % 2 == 0) {
                     r.setFill(Color.web("#B0B0B0"));
                 } else {
@@ -554,6 +555,8 @@ public class InterfaceJogo {
     }
 
     private void atualizarCabecalhoJogadores() {
+        // Só tenta atualizar se o label já foi criado
+        if (nomesJogadoresLabel == null) return;
         String corLocal = minhaCor == 'B' ? "Pretas" : "Brancas";
         String corAdv = minhaCor == 'B' ? "Brancas" : "Pretas";
         nomesJogadoresLabel.setText(
@@ -571,11 +574,11 @@ public class InterfaceJogo {
     private void iniciarTemporizador() {
         pararTemporizador();
         tempoRestante = 30;
-        temporizadorLabel.setText("Tempo restante: " + tempoRestante);
+        Platform.runLater(() -> temporizadorLabel.setText("Tempo restante: " + tempoRestante));
 
         temporizador = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             tempoRestante--;
-            temporizadorLabel.setText("Tempo restante: " + tempoRestante);
+            Platform.runLater(() -> temporizadorLabel.setText("Tempo restante: " + tempoRestante));
             if (tempoRestante <= 0) {
                 pararTemporizador();
                 meuTurno = false;
