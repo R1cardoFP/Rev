@@ -338,15 +338,10 @@ public class InterfaceJogo {
         topo.getChildren().addAll(nomesJogadoresLabel, contagemPecasLabel, temporizadorLabel, botoes);
         root.setTop(topo);
 
-        // Tabuleiro com fundo preto e centrado
+        // Tabuleiro com fundo padrão e centrado
         grelha.setMinSize(400, 400);
         grelha.setMaxSize(400, 400);
         grelha.setPrefSize(400, 400);
-
-        HBox tabuleiroContainer = new HBox();
-        tabuleiroContainer.setAlignment(Pos.CENTER);
-        tabuleiroContainer.setStyle("-fx-background-color: #000000; -fx-border-color: #333; -fx-border-width: 3px; -fx-border-radius: 8px;");
-        tabuleiroContainer.getChildren().add(grelha);
 
         VBox centro = new VBox(grelha);
         centro.setAlignment(Pos.CENTER);
@@ -379,7 +374,7 @@ public class InterfaceJogo {
         chatBox.getChildren().addAll(chatTitulo, chatArea, chatInputBox);
 
         // Layout principal: tabuleiro à esquerda, chat à direita
-        HBox conteudo = new HBox(20, tabuleiroContainer, chatBox);
+        HBox conteudo = new HBox(20, centro, chatBox);
         conteudo.setAlignment(Pos.CENTER);
         conteudo.setPadding(new Insets(20, 0, 20, 0));
         root.setCenter(conteudo);
@@ -511,20 +506,11 @@ public class InterfaceJogo {
         for (int linha = 0; linha < 8; linha++) {
             for (int coluna = 0; coluna < 8; coluna++) {
                 Rectangle r = new Rectangle(cellSize, cellSize);
-                // Casas alternadas: cinzento e castanho, fundo do tabuleiro é preto
+                // Casas alternadas: cinzento e castanho
                 if ((linha + coluna) % 2 == 0) {
                     r.setFill(Color.web("#B0B0B0")); // Cor padrão para casas claras
                 } else {
                     r.setFill(Color.web("#8B5C2A")); // Cor padrão para casas escuras
-                }
-
-                // Destacar casas válidas para jogada
-                if (meuTurno && tabuleiro.jogadaValida(linha, coluna, minhaCor)) {
-                    if (linha == jogadaLinha && coluna == jogadaColuna) {
-                        r.setFill(Color.web("#FFA50080")); // Cor laranja para casa selecionada
-                    } else {
-                        r.setFill(Color.web("#FF000080")); // Cor vermelha para casas válidas
-                    }
                 }
                 r.setArcWidth(cellSize * 0.24);
                 r.setArcHeight(cellSize * 0.24);
