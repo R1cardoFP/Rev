@@ -39,7 +39,7 @@ public class ServidorReversi {
      */
     public static void main(String[] args) {
 
-        String ipManual = "26.1.71.80"; // IP onde o servidor vai escutar (mude para o IP da sua máquina)
+        String ipManual = "10.20.10.100"; // IP onde o servidor vai escutar (mude para o IP da sua máquina)
         int porta = 2025; // Porta onde o servidor vai escutar
 
         try (ServerSocket serverSocket = new ServerSocket(porta, 0, InetAddress.getByName(ipManual))) {
